@@ -70,6 +70,98 @@ export class Cpu {
     operation.action()
   }
 
+  private add_a(val: number): number {
+    const result = this.a + val
+    const z = result === 0
+    const n = 0
+    const h = (((this.a & 0xF) + (val & 0xF)) > 0xF)
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private adc_a(val: number): number {
+    const flagC = +!!(this.f & FLAG_CARRY)
+    const result = this.a + val + flagC
+    const z = result === 0
+    const n = 0
+    const h = (((this.a & 0xF) + (val & 0xF) + flagC) > 0xF)
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private sub_a(val: number): number {
+    const result = this.a - val
+    const z = result === 0
+    const n = 1
+    const h = (((this.a & 0xF) - (val & 0xF)) < 0)
+    const c = result < 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private sbc_a(val: number): number {
+    const flagC = +!!(this.f & FLAG_CARRY)
+    const result = this.a - val - flagC
+    const z = result === 0
+    const n = 0
+    const h = (((this.a & 0xF) - (val & 0xF) - flagC) < 0)
+    const c = result < 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private and_a(val: number): number {
+    const result = this.a & val
+    const z = result === 0
+    const n = 0
+    const h = 1
+    const c = 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private or_a(val: number): number {
+    const result = this.a | val
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private xor_a(val: number): number {
+    const result = this.a ^ val
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private cp_a(val: number): number {
+    const result = this.a - val
+    const z = result === 0
+    const n = 1
+    const h = (((this.a & 0xF) - (val & 0xF)) < 0)
+    const c = result < 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private inc(val: number): number {
+    const result = val + 1
+    const z = result === 0
+    const n = 0
+    const h = val + 1 > 0xF
+    const c = this.f & FLAG_CARRY
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
   private dec(val: number): number {
     const newVal = val - 1
     const z = newVal === 0
@@ -118,7 +210,7 @@ export class Cpu {
       0x01: { cycles: 12, action: () => this.bc = this.loadImmediateWord() },
       0x02: { cycles: 8, action: () => this.memoryMap.writeByte(this.bc, this.a) },
       0x03: null,
-      0x04: null,
+      0x04: { cycles: 4, action: () => this.b = this.inc(this.b) },
       0x05: { cycles: 4, action: () => this.b = this.dec(this.b) },
       0x06: { cycles: 4, action: () => this.b = this.loadImmediateByte() },
       0x07: null,
@@ -126,56 +218,56 @@ export class Cpu {
       0x09: null,
       0x0A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.bc) },
       0x0B: null,
-      0x0C: null,
-      0x0D: null,
+      0x0C: { cycles: 4, action: () => this.c = this.inc(this.c) },
+      0x0D: { cycles: 4, action: () => this.c = this.dec(this.c) },
       0x0E: { cycles: 4, action: () => this.c = this.loadImmediateByte() },
       0x0F: null,
       0x10: null,
       0x11: { cycles: 12, action: () => this.de = this.loadImmediateWord() },
       0x12: { cycles: 8, action: () => this.memoryMap.writeByte(this.de, this.a) },
       0x13: null,
-      0x14: null,
-      0x15: null,
+      0x14: { cycles: 4, action: () => this.d = this.inc(this.d) },
+      0x15: { cycles: 4, action: () => this.d = this.dec(this.d) },
       0x16: { cycles: 4, action: () => this.d = this.loadImmediateByte() },
       0x17: null,
       0x18: null,
       0x19: null,
       0x1A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.de) },
       0x1B: null,
-      0x1C: null,
-      0x1D: null,
+      0x1C: { cycles: 4, action: () => this.e = this.inc(this.e) },
+      0x1D: { cycles: 4, action: () => this.e = this.dec(this.e) },
       0x1E: { cycles: 4, action: () => this.e = this.loadImmediateByte() },
       0x1F: null,
       0x20: null,
       0x21: { cycles: 12, action: () => this.hl = this.loadImmediateWord() },
       0x22: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl++, this.a) },
       0x23: null,
-      0x24: null,
-      0x25: null,
+      0x24: { cycles: 4, action: () => this.h = this.inc(this.h) },
+      0x25: { cycles: 4, action: () => this.h = this.dec(this.h) },
       0x26: { cycles: 4, action: () => this.h = this.loadImmediateByte() },
       0x27: null,
       0x28: null,
       0x29: null,
       0x2A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl++) },
       0x2B: null,
-      0x2C: null,
-      0x2D: null,
+      0x2C: { cycles: 4, action: () => this.l = this.inc(this.l) },
+      0x2D: { cycles: 4, action: () => this.l = this.dec(this.l) },
       0x2E: { cycles: 4, action: () => this.l = this.loadImmediateByte() },
       0x2F: null,
       0x30: null,
       0x31: { cycles: 12, action: () => this.sp = this.loadImmediateWord() },
       0x32: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl--, this.a) },
       0x33: null,
-      0x34: null,
-      0x35: null,
+      0x34: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.inc(this.memoryMap.readByte(this.hl))) },
+      0x35: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.dec(this.memoryMap.readByte(this.hl))) },
       0x36: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.loadImmediateByte()) },
       0x37: null,
       0x38: null,
       0x39: null,
       0x3A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl--) },
       0x3B: null,
-      0x3C: null,
-      0x3D: null,
+      0x3C: { cycles: 4, action: () => this.a = this.inc(this.a) },
+      0x3D: { cycles: 4, action: () => this.a = this.dec(this.a) },
       0x3E: { cycles: 8, action: () => this.a = this.loadImmediateByte() },
       0x3F: null,
       0x40: { cycles: 4, action: () => this.b = this.b },
@@ -242,77 +334,77 @@ export class Cpu {
       0x7D: { cycles: 4, action: () => this.a = this.l },
       0x7E: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl) },
       0x7F: { cycles: 4, action: () => this.a = this.a },
-      0x80: null,
-      0x81: null,
-      0x82: null,
-      0x83: null,
-      0x84: null,
-      0x85: null,
-      0x86: null,
-      0x87: null,
-      0x88: null,
-      0x89: null,
-      0x8A: null,
-      0x8B: null,
-      0x8C: null,
-      0x8D: null,
-      0x8E: null,
-      0x8F: null,
-      0x90: null,
-      0x91: null,
-      0x92: null,
-      0x93: null,
-      0x94: null,
-      0x95: null,
-      0x96: null,
-      0x97: null,
-      0x98: null,
-      0x99: null,
-      0x9A: null,
-      0x9B: null,
-      0x9C: null,
-      0x9D: null,
-      0x9E: null,
-      0x9F: null,
-      0xA0: null,
-      0xA1: null,
-      0xA2: null,
-      0xA3: null,
-      0xA4: null,
-      0xA5: null,
-      0xA6: null,
-      0xA7: null,
-      0xA8: null,
-      0xA9: null,
-      0xAA: null,
-      0xAB: null,
-      0xAC: null,
-      0xAD: null,
-      0xAE: null,
-      0xAF: null,
-      0xB0: null,
-      0xB1: null,
-      0xB2: null,
-      0xB3: null,
-      0xB4: null,
-      0xB5: null,
-      0xB6: null,
-      0xB7: null,
-      0xB8: null,
-      0xB9: null,
-      0xBA: null,
-      0xBB: null,
-      0xBC: null,
-      0xBD: null,
-      0xBE: null,
-      0xBF: null,
+      0x80: { cycles: 4, action: () => this.a = this.add_a(this.b) },
+      0x81: { cycles: 4, action: () => this.a = this.add_a(this.c) },
+      0x82: { cycles: 4, action: () => this.a = this.add_a(this.d) },
+      0x83: { cycles: 4, action: () => this.a = this.add_a(this.e) },
+      0x84: { cycles: 4, action: () => this.a = this.add_a(this.h) },
+      0x85: { cycles: 4, action: () => this.a = this.add_a(this.l) },
+      0x86: { cycles: 8, action: () => this.a = this.add_a(this.memoryMap.readByte(this.hl)) },
+      0x87: { cycles: 4, action: () => this.a = this.add_a(this.a) },
+      0x88: { cycles: 4, action: () => this.a = this.adc_a(this.b) },
+      0x89: { cycles: 4, action: () => this.a = this.adc_a(this.c) },
+      0x8A: { cycles: 4, action: () => this.a = this.adc_a(this.d) },
+      0x8B: { cycles: 4, action: () => this.a = this.adc_a(this.e) },
+      0x8C: { cycles: 4, action: () => this.a = this.adc_a(this.h) },
+      0x8D: { cycles: 4, action: () => this.a = this.adc_a(this.l) },
+      0x8E: { cycles: 8, action: () => this.a = this.adc_a(this.memoryMap.readByte(this.hl)) },
+      0x8F: { cycles: 4, action: () => this.a = this.adc_a(this.a) },
+      0x90: { cycles: 4, action: () => this.a = this.sub_a(this.b) },
+      0x91: { cycles: 4, action: () => this.a = this.sub_a(this.c) },
+      0x92: { cycles: 4, action: () => this.a = this.sub_a(this.d) },
+      0x93: { cycles: 4, action: () => this.a = this.sub_a(this.e) },
+      0x94: { cycles: 4, action: () => this.a = this.sub_a(this.h) },
+      0x95: { cycles: 4, action: () => this.a = this.sub_a(this.l) },
+      0x96: { cycles: 8, action: () => this.a = this.sub_a(this.memoryMap.readByte(this.hl)) },
+      0x97: { cycles: 4, action: () => this.a = this.sub_a(this.a) },
+      0x98: { cycles: 4, action: () => this.a = this.sbc_a(this.b) },
+      0x99: { cycles: 4, action: () => this.a = this.sbc_a(this.c) },
+      0x9A: { cycles: 4, action: () => this.a = this.sbc_a(this.d) },
+      0x9B: { cycles: 4, action: () => this.a = this.sbc_a(this.e) },
+      0x9C: { cycles: 4, action: () => this.a = this.sbc_a(this.h) },
+      0x9D: { cycles: 4, action: () => this.a = this.sbc_a(this.l) },
+      0x9E: { cycles: 8, action: () => this.a = this.sbc_a(this.memoryMap.readByte(this.hl)) },
+      0x9F: { cycles: 4, action: () => this.a = this.sbc_a(this.a) },
+      0xA0: { cycles: 4, action: () => this.a = this.and_a(this.b) },
+      0xA1: { cycles: 4, action: () => this.a = this.and_a(this.c) },
+      0xA2: { cycles: 4, action: () => this.a = this.and_a(this.d) },
+      0xA3: { cycles: 4, action: () => this.a = this.and_a(this.e) },
+      0xA4: { cycles: 4, action: () => this.a = this.and_a(this.h) },
+      0xA5: { cycles: 4, action: () => this.a = this.and_a(this.l) },
+      0xA6: { cycles: 8, action: () => this.a = this.and_a(this.memoryMap.readByte(this.hl)) },
+      0xA7: { cycles: 4, action: () => this.a = this.and_a(this.a) },
+      0xA8: { cycles: 4, action: () => this.a = this.xor_a(this.b) },
+      0xA9: { cycles: 4, action: () => this.a = this.xor_a(this.c) },
+      0xAA: { cycles: 4, action: () => this.a = this.xor_a(this.d) },
+      0xAB: { cycles: 4, action: () => this.a = this.xor_a(this.e) },
+      0xAC: { cycles: 4, action: () => this.a = this.xor_a(this.h) },
+      0xAD: { cycles: 4, action: () => this.a = this.xor_a(this.l) },
+      0xAE: { cycles: 8, action: () => this.a = this.xor_a(this.memoryMap.readByte(this.hl)) },
+      0xAF: { cycles: 4, action: () => this.a = this.xor_a(this.a) },
+      0xB0: { cycles: 4, action: () => this.a = this.or_a(this.b) },
+      0xB1: { cycles: 4, action: () => this.a = this.or_a(this.c) },
+      0xB2: { cycles: 4, action: () => this.a = this.or_a(this.d) },
+      0xB3: { cycles: 4, action: () => this.a = this.or_a(this.e) },
+      0xB4: { cycles: 4, action: () => this.a = this.or_a(this.h) },
+      0xB5: { cycles: 4, action: () => this.a = this.or_a(this.l) },
+      0xB6: { cycles: 8, action: () => this.a = this.or_a(this.memoryMap.readByte(this.hl)) },
+      0xB7: { cycles: 4, action: () => this.a = this.or_a(this.a) },
+      0xB8: { cycles: 4, action: () => this.a = this.cp_a(this.b) },
+      0xB9: { cycles: 4, action: () => this.a = this.cp_a(this.c) },
+      0xBA: { cycles: 4, action: () => this.a = this.cp_a(this.d) },
+      0xBB: { cycles: 4, action: () => this.a = this.cp_a(this.e) },
+      0xBC: { cycles: 4, action: () => this.a = this.cp_a(this.h) },
+      0xBD: { cycles: 4, action: () => this.a = this.cp_a(this.l) },
+      0xBE: { cycles: 8, action: () => this.a = this.cp_a(this.memoryMap.readByte(this.hl)) },
+      0xBF: { cycles: 4, action: () => this.a = this.cp_a(this.a) },
       0xC0: null,
       0xC1: { cycles: 12, action: () => this.bc = this.popWord() },
       0xC2: null,
       0xC3: null,
       0xC4: null,
       0xC5: { cycles: 16, action: () => this.pushWord(this.bc) },
-      0xC6: null,
+      0xC6: { cycles: 8, action: () => this.a = this.add_a(this.loadImmediateByte()) },
       0xC7: null,
       0xC8: null,
       0xC9: null,
@@ -320,7 +412,7 @@ export class Cpu {
       0xCB: null,
       0xCC: null,
       0xCD: null,
-      0xCE: null,
+      0xCE: { cycles: 8, action: () => this.a = this.adc_a(this.loadImmediateByte()) },
       0xCF: null,
       0xD0: null,
       0xD1: { cycles: 12, action: () => this.de = this.popWord() },
@@ -328,7 +420,7 @@ export class Cpu {
       0xD3: null,
       0xD4: null,
       0xD5: { cycles: 16, action: () => this.pushWord(this.de) },
-      0xD6: null,
+      0xD6: { cycles: 8, action: () => this.a = this.sub_a(this.loadImmediateByte()) },
       0xD7: null,
       0xD8: null,
       0xD9: null,
@@ -344,7 +436,7 @@ export class Cpu {
       0xE3: null,
       0xE4: null,
       0xE5: { cycles: 16, action: () => this.pushWord(this.hl) },
-      0xE6: null,
+      0xE6: { cycles: 8, action: () => this.a = this.and_a(this.loadImmediateByte()) },
       0xE7: null,
       0xE8: null,
       0xE9: null,
@@ -352,7 +444,7 @@ export class Cpu {
       0xEB: null,
       0xEC: null,
       0xED: null,
-      0xEE: null,
+      0xEE: { cycles: 8, action: () => this.a = this.xor_a(this.loadImmediateByte()) },
       0xEF: null,
       0xF0: { cycles: 12, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.loadImmediateByte()) },
       0xF1: { cycles: 12, action: () => this.af = this.popWord() },
@@ -360,7 +452,7 @@ export class Cpu {
       0xF3: null,
       0xF4: null,
       0xF5: { cycles: 16, action: () => this.pushWord(this.af) },
-      0xF6: null,
+      0xF6: { cycles: 8, action: () => this.a = this.or_a(this.loadImmediateByte()) },
       0xF7: null,
       0xF8: { cycles: 12, action: () => this.hl = this.sp + toSigned(this.loadImmediateByte()) },
       0xF9: { cycles: 8, action: () => this.sp = this.hl },
@@ -368,7 +460,7 @@ export class Cpu {
       0xFB: null,
       0xFC: null,
       0xFD: null,
-      0xFE: null,
+      0xFE: { cycles: 8, action: () => this.a = this.cp_a(this.loadImmediateByte()) },
       0xFF: null,
     }
   }
