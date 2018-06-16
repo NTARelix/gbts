@@ -1,5 +1,5 @@
 import { Emulator } from './emulator'
-import { toHex } from './to-hex'
+import { toHex } from './math'
 
 function emptyNode(node: HTMLElement): void {
   while (node.firstChild) {

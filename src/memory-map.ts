@@ -1,4 +1,4 @@
-import { toHex } from './to-hex'
+import { toHex } from './math'
 
 export class MemoryMap {
   private readonly cartData: Uint8Array
