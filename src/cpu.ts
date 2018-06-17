@@ -455,6 +455,17 @@ export class Cpu {
     this.pc = addr
   }
 
+  private ret_cc(isFlagSet: boolean): void {
+    if (isFlagSet) {
+      this.pc = this.popWord()
+    }
+  }
+
+  private reti(): void {
+    this.pc = this.popWord()
+    this.isInterruptEnabled = true
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -650,7 +661,7 @@ export class Cpu {
       0x0BD: { cycles: 4, action: () => this.a = this.cp_a(this.l) },
       0x0BE: { cycles: 8, action: () => this.a = this.cp_a(this.memoryMap.readByte(this.hl)) },
       0x0BF: { cycles: 4, action: () => this.a = this.cp_a(this.a) },
-      0x0C0: null,
+      0x0C0: { cycles: 8, action: () => this.ret_cc(!this.fz) },
       0x0C1: { cycles: 12, action: () => this.bc = this.popWord() },
       0x0C2: { cycles: 12, action: () => this.jp_cc(!this.fz) },
       0x0C3: { cycles: 12, action: () => this.pc = this.loadImmediateWord() },
@@ -658,15 +669,15 @@ export class Cpu {
       0x0C5: { cycles: 16, action: () => this.pushWord(this.bc) },
       0x0C6: { cycles: 8, action: () => this.a = this.add_a(this.loadImmediateByte()) },
       0x0C7: { cycles: 32, action: () => this.rst(0x00) },
-      0x0C8: null,
-      0x0C9: null,
+      0x0C8: { cycles: 8, action: () => this.ret_cc(this.fz) },
+      0x0C9: { cycles: 8, action: () => this.pc = this.popWord() },
       0x0CA: { cycles: 12, action: () => this.jp_cc(this.fz) },
       0x0CB: { cycles: 4, action: () => this.tick(true) },
       0x0CC: { cycles: 12, action: () => this.call_cc_nn(this.fz) },
       0x0CD: { cycles: 12, action: () => this.call_nn() },
       0x0CE: { cycles: 8, action: () => this.a = this.adc_a(this.loadImmediateByte()) },
       0x0CF: { cycles: 32, action: () => this.rst(0x08) },
-      0x0D0: null,
+      0x0D0: { cycles: 8, action: () => this.ret_cc(!this.fc) },
       0x0D1: { cycles: 12, action: () => this.de = this.popWord() },
       0x0D2: { cycles: 12, action: () => this.jp_cc(!this.fc) },
       0x0D3: null,
@@ -674,8 +685,8 @@ export class Cpu {
       0x0D5: { cycles: 16, action: () => this.pushWord(this.de) },
       0x0D6: { cycles: 8, action: () => this.a = this.sub_a(this.loadImmediateByte()) },
       0x0D7: { cycles: 32, action: () => this.rst(0x10) },
-      0x0D8: null,
-      0x0D9: null,
+      0x0D8: { cycles: 8, action: () => this.ret_cc(this.fc) },
+      0x0D9: { cycles: 8, action: () => this.reti() },
       0x0DA: { cycles: 12, action: () => this.jp_cc(this.fc) },
       0x0DB: null,
       0x0DC: { cycles: 12, action: () => this.call_cc_nn(this.fc) },
