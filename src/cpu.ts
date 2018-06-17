@@ -3,22 +3,25 @@ import { IOperationMap } from './ioperation-map'
 import { toHex, toSigned } from './math'
 import { MemoryMap } from './memory-map'
 
-const FLAG_ZERO = 0b10000000
-const FLAG_SUBTRACT = 0b01000000
-const FLAG_HALF_CARRY = 0b00100000
-const FLAG_CARRY = 0b00010000
+const FLAG_ZERO =         0b10000000
+const FLAG_ZERO_N =       0b01111111
+const FLAG_SUBTRACT =     0b01000000
+const FLAG_SUBTRACT_N =   0b10111111
+const FLAG_HALF_CARRY =   0b00100000
+const FLAG_HALF_CARRY_N = 0b11011111
+const FLAG_CARRY =        0b00010000
+const FLAG_CARRY_N =      0b11101111
 
 export class Cpu {
   private readonly memoryMap: MemoryMap
   private readonly byteView: Uint8Array
   private readonly wordView: Uint16Array
   private readonly operations: IOperationMap
-  private readonly cbOperations: IOperationMap
   private isHalted: boolean
   private isStopped: boolean
   private isInterruptEnabled: boolean
+  private isCbOpcode: boolean
   private totalCycles: number
-  private opCycles: number
 
   constructor(memoryMap: MemoryMap) {
     this.memoryMap = memoryMap
@@ -26,10 +29,10 @@ export class Cpu {
     this.byteView = new Uint8Array(registerBuffer)
     this.wordView = new Uint16Array(registerBuffer)
     this.operations = this.generateOperationMap()
-    this.cbOperations = this.generateCbOperationMap()
     this.isHalted = false
     this.isStopped = false
     this.isInterruptEnabled = false
+    this.isCbOpcode = false
     this.totalCycles = 0
     this.reset()
   }
@@ -69,10 +72,20 @@ export class Cpu {
   public get pc(): number { return this.wordView[5] }
   public set pc(val: number) { this.wordView[5] = val }
 
+  public get fz(): number { return +!!(this.f & FLAG_ZERO) }
+  public set fz(val: number) { !!val ? this.f |= FLAG_ZERO : this.f &= FLAG_ZERO_N }
+  public get fn(): number { return +!!(this.f & FLAG_SUBTRACT) }
+  public set fn(val: number) { !!val ? this.f |= FLAG_SUBTRACT : this.f &= FLAG_SUBTRACT_N }
+  public get fh(): number { return +!!(this.f & FLAG_HALF_CARRY) }
+  public set fh(val: number) { !!val ? this.f |= FLAG_HALF_CARRY : this.f &= FLAG_HALF_CARRY_N }
+  public get fc(): number { return +!!(this.f & FLAG_CARRY) }
+  public set fc(val: number) { !!val ? this.f |= FLAG_CARRY : this.f &= FLAG_CARRY_N }
+
   public tick(): void {
-    const opcode = this.memoryMap.readByte(this.pc)
+    const cbOffset = this.isCbOpcode ? 0x100 : 0
+    const opcode = this.memoryMap.readByte(this.pc + cbOffset)
     const operation = this.operations[opcode]
-    if (!operation) { throw new Error('Invalid opcode: ' + toHex(opcode)) }
+    if (!operation) { throw new Error('Invalid opcode: ' + toHex(opcode, 2)) }
     this.pc += 1
     this.totalCycles += operation.cycles
     operation.action()
@@ -282,6 +295,116 @@ export class Cpu {
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
   }
 
+  private rlca(): void {
+    this.a = (this.a << 1) + (this.a >> 7)
+    const z = this.a === 0
+    const n = 0
+    const h = 0
+    const c = this.a > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private rla(): void {
+    const flagC = this.f & FLAG_CARRY
+    this.a = (this.a << 1) + flagC
+    const z = this.a === 0
+    const n = 0
+    const h = 0
+    const c = this.a > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private rrca(): void {
+    this.a = (this.a << 1) + ((this.a & 1) << 7) + ((this.a & 1) << 8)
+    const z = this.a === 0
+    const n = 0
+    const h = 0
+    const c = this.a > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private rra(): void {
+    const flagC = this.f & FLAG_CARRY
+    this.a = (this.a << 1) + (flagC << 7) + ((this.a & 1) << 8)
+    const z = this.a === 0
+    const n = 0
+    const h = 0
+    const c = this.a > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private rlc_n(val: number): number {
+    const result = (val << 1) + (val >> 7)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private rl_n(val: number): number {
+    const flagC = this.f & FLAG_CARRY
+    const result = (val << 1) + flagC
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private rrc_n(val: number): number {
+    const result = (val >> 1) + ((val & 1) << 7) + ((val & 1) << 8)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private rr_n(val: number): number {
+    const flagC = this.f & FLAG_CARRY
+    const result = (val >> 1) + (flagC << 7) + ((val & 1) << 8)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private sla_n(val: number): number {
+    const result = val << 1
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private sra_n(val: number): number {
+    const result = ((val >> 1) | (val & 0x80)) + ((val & 1) << 8)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private srl_n(val: number): number {
+    const result = (val >> 1) + ((val & 1) << 8)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = result > 0xFF
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -292,7 +415,7 @@ export class Cpu {
       0x04: { cycles: 4, action: () => this.b = this.inc(this.b) },
       0x05: { cycles: 4, action: () => this.b = this.dec(this.b) },
       0x06: { cycles: 4, action: () => this.b = this.loadImmediateByte() },
-      0x07: null,
+      0x07: { cycles: 4, action: () => this.rlca() },
       0x08: { cycles: 20, action: () => this.memoryMap.writeWord(this.loadImmediateWord(), this.sp) },
       0x09: { cycles: 8, action: () => this.hl = this.add_hl(this.bc) },
       0x0A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.bc) },
@@ -300,7 +423,7 @@ export class Cpu {
       0x0C: { cycles: 4, action: () => this.c = this.inc(this.c) },
       0x0D: { cycles: 4, action: () => this.c = this.dec(this.c) },
       0x0E: { cycles: 4, action: () => this.c = this.loadImmediateByte() },
-      0x0F: null,
+      0x0F: { cycles: 4, action: () => this.rrca() },
       0x10: { cycles: 4, action: () => this.isStopped = true },
       0x11: { cycles: 12, action: () => this.de = this.loadImmediateWord() },
       0x12: { cycles: 8, action: () => this.memoryMap.writeByte(this.de, this.a) },
@@ -308,7 +431,7 @@ export class Cpu {
       0x14: { cycles: 4, action: () => this.d = this.inc(this.d) },
       0x15: { cycles: 4, action: () => this.d = this.dec(this.d) },
       0x16: { cycles: 4, action: () => this.d = this.loadImmediateByte() },
-      0x17: null,
+      0x17: { cycles: 4, action: () => this.rla() },
       0x18: null,
       0x19: { cycles: 8, action: () => this.hl = this.add_hl(this.de) },
       0x1A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.de) },
@@ -316,7 +439,7 @@ export class Cpu {
       0x1C: { cycles: 4, action: () => this.e = this.inc(this.e) },
       0x1D: { cycles: 4, action: () => this.e = this.dec(this.e) },
       0x1E: { cycles: 4, action: () => this.e = this.loadImmediateByte() },
-      0x1F: null,
+      0x1F: { cycles: 4, action: () => this.rra() },
       0x20: null,
       0x21: { cycles: 12, action: () => this.hl = this.loadImmediateWord() },
       0x22: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl++, this.a) },
@@ -541,268 +664,264 @@ export class Cpu {
       0xFD: null,
       0xFE: { cycles: 8, action: () => this.a = this.cp_a(this.loadImmediateByte()) },
       0xFF: null,
-    }
-  }
 
-  private generateCbOperationMap(): IOperationMap {
-    return {
-      // tslint:disable-next-line:no-empty
-      0x00: null,
-      0x01: null,
-      0x02: null,
-      0x03: null,
-      0x04: null,
-      0x05: null,
-      0x06: null,
-      0x07: null,
-      0x08: null,
-      0x09: null,
-      0x0A: null,
-      0x0B: null,
-      0x0C: null,
-      0x0D: null,
-      0x0E: null,
-      0x0F: null,
-      0x10: null,
-      0x11: null,
-      0x12: null,
-      0x13: null,
-      0x14: null,
-      0x15: null,
-      0x16: null,
-      0x17: null,
-      0x18: null,
-      0x19: null,
-      0x1A: null,
-      0x1B: null,
-      0x1C: null,
-      0x1D: null,
-      0x1E: null,
-      0x1F: null,
-      0x20: null,
-      0x21: null,
-      0x22: null,
-      0x23: null,
-      0x24: null,
-      0x25: null,
-      0x26: null,
-      0x27: null,
-      0x28: null,
-      0x29: null,
-      0x2A: null,
-      0x2B: null,
-      0x2C: null,
-      0x2D: null,
-      0x2E: null,
-      0x2F: null,
-      0x30: { cycles: 8, action: () => this.b = this.swap(this.b) },
-      0x31: { cycles: 8, action: () => this.c = this.swap(this.c) },
-      0x32: { cycles: 8, action: () => this.d = this.swap(this.d) },
-      0x33: { cycles: 8, action: () => this.e = this.swap(this.e) },
-      0x34: { cycles: 8, action: () => this.h = this.swap(this.h) },
-      0x35: { cycles: 8, action: () => this.l = this.swap(this.l) },
-      0x36: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.swap(this.memoryMap.readByte(this.hl))) },
-      0x37: { cycles: 8, action: () => this.a = this.swap(this.a) },
-      0x38: null,
-      0x39: null,
-      0x3A: null,
-      0x3B: null,
-      0x3C: null,
-      0x3D: null,
-      0x3E: null,
-      0x3F: null,
-      0x40: null,
-      0x41: null,
-      0x42: null,
-      0x43: null,
-      0x44: null,
-      0x45: null,
-      0x46: null,
-      0x47: null,
-      0x48: null,
-      0x49: null,
-      0x4A: null,
-      0x4B: null,
-      0x4C: null,
-      0x4D: null,
-      0x4E: null,
-      0x4F: null,
-      0x50: null,
-      0x51: null,
-      0x52: null,
-      0x53: null,
-      0x54: null,
-      0x55: null,
-      0x56: null,
-      0x57: null,
-      0x58: null,
-      0x59: null,
-      0x5A: null,
-      0x5B: null,
-      0x5C: null,
-      0x5D: null,
-      0x5E: null,
-      0x5F: null,
-      0x60: null,
-      0x61: null,
-      0x62: null,
-      0x63: null,
-      0x64: null,
-      0x65: null,
-      0x66: null,
-      0x67: null,
-      0x68: null,
-      0x69: null,
-      0x6A: null,
-      0x6B: null,
-      0x6C: null,
-      0x6D: null,
-      0x6E: null,
-      0x6F: null,
-      0x70: null,
-      0x71: null,
-      0x72: null,
-      0x73: null,
-      0x74: null,
-      0x75: null,
-      0x76: null,
-      0x77: null,
-      0x78: null,
-      0x79: null,
-      0x7A: null,
-      0x7B: null,
-      0x7C: null,
-      0x7D: null,
-      0x7E: null,
-      0x7F: null,
-      0x80: null,
-      0x81: null,
-      0x82: null,
-      0x83: null,
-      0x84: null,
-      0x85: null,
-      0x86: null,
-      0x87: null,
-      0x88: null,
-      0x89: null,
-      0x8A: null,
-      0x8B: null,
-      0x8C: null,
-      0x8D: null,
-      0x8E: null,
-      0x8F: null,
-      0x90: null,
-      0x91: null,
-      0x92: null,
-      0x93: null,
-      0x94: null,
-      0x95: null,
-      0x96: null,
-      0x97: null,
-      0x98: null,
-      0x99: null,
-      0x9A: null,
-      0x9B: null,
-      0x9C: null,
-      0x9D: null,
-      0x9E: null,
-      0x9F: null,
-      0xA0: null,
-      0xA1: null,
-      0xA2: null,
-      0xA3: null,
-      0xA4: null,
-      0xA5: null,
-      0xA6: null,
-      0xA7: null,
-      0xA8: null,
-      0xA9: null,
-      0xAA: null,
-      0xAB: null,
-      0xAC: null,
-      0xAD: null,
-      0xAE: null,
-      0xAF: null,
-      0xB0: null,
-      0xB1: null,
-      0xB2: null,
-      0xB3: null,
-      0xB4: null,
-      0xB5: null,
-      0xB6: null,
-      0xB7: null,
-      0xB8: null,
-      0xB9: null,
-      0xBA: null,
-      0xBB: null,
-      0xBC: null,
-      0xBD: null,
-      0xBE: null,
-      0xBF: null,
-      0xC0: null,
-      0xC1: null,
-      0xC2: null,
-      0xC3: null,
-      0xC4: null,
-      0xC5: null,
-      0xC6: null,
-      0xC7: null,
-      0xC8: null,
-      0xC9: null,
-      0xCA: null,
-      0xCB: null,
-      0xCC: null,
-      0xCD: null,
-      0xCE: null,
-      0xCF: null,
-      0xD0: null,
-      0xD1: null,
-      0xD2: null,
-      0xD3: null,
-      0xD4: null,
-      0xD5: null,
-      0xD6: null,
-      0xD7: null,
-      0xD8: null,
-      0xD9: null,
-      0xDA: null,
-      0xDB: null,
-      0xDC: null,
-      0xDD: null,
-      0xDE: null,
-      0xDF: null,
-      0xE0: null,
-      0xE1: null,
-      0xE2: null,
-      0xE3: null,
-      0xE4: null,
-      0xE5: null,
-      0xE6: null,
-      0xE7: null,
-      0xE8: null,
-      0xE9: null,
-      0xEA: null,
-      0xEB: null,
-      0xEC: null,
-      0xED: null,
-      0xEE: null,
-      0xEF: null,
-      0xF0: null,
-      0xF1: null,
-      0xF2: null,
-      0xF3: null,
-      0xF4: null,
-      0xF5: null,
-      0xF6: null,
-      0xF7: null,
-      0xF8: null,
-      0xF9: null,
-      0xFA: null,
-      0xFB: null,
-      0xFC: null,
-      0xFD: null,
-      0xFE: null,
-      0xFF: null,
+      // CB Ops
+      0x100: { cycles: 8, action: () => this.b = this.rlc_n(this.b) },
+      0x101: { cycles: 8, action: () => this.c = this.rlc_n(this.c) },
+      0x102: { cycles: 8, action: () => this.d = this.rlc_n(this.d) },
+      0x103: { cycles: 8, action: () => this.e = this.rlc_n(this.e) },
+      0x104: { cycles: 8, action: () => this.h = this.rlc_n(this.h) },
+      0x105: { cycles: 8, action: () => this.l = this.rlc_n(this.l) },
+      0x106: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.rlc_n(this.memoryMap.readByte(this.hl))) },
+      0x107: { cycles: 8, action: () => this.a = this.rlc_n(this.a) },
+      0x108: { cycles: 8, action: () => this.b = this.rrc_n(this.b) },
+      0x109: { cycles: 8, action: () => this.c = this.rrc_n(this.c) },
+      0x10A: { cycles: 8, action: () => this.d = this.rrc_n(this.d) },
+      0x10B: { cycles: 8, action: () => this.e = this.rrc_n(this.e) },
+      0x10C: { cycles: 8, action: () => this.h = this.rrc_n(this.h) },
+      0x10D: { cycles: 8, action: () => this.l = this.rrc_n(this.l) },
+      0x10E: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.rrc_n(this.memoryMap.readByte(this.hl))) },
+      0x10F: { cycles: 8, action: () => this.a = this.rrc_n(this.a) },
+      0x110: { cycles: 8, action: () => this.b = this.rl_n(this.b) },
+      0x111: { cycles: 8, action: () => this.c = this.rl_n(this.c) },
+      0x112: { cycles: 8, action: () => this.d = this.rl_n(this.d) },
+      0x113: { cycles: 8, action: () => this.e = this.rl_n(this.e) },
+      0x114: { cycles: 8, action: () => this.h = this.rl_n(this.h) },
+      0x115: { cycles: 8, action: () => this.l = this.rl_n(this.l) },
+      0x116: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.rl_n(this.memoryMap.readByte(this.hl))) },
+      0x117: { cycles: 8, action: () => this.a = this.rl_n(this.a) },
+      0x118: { cycles: 8, action: () => this.b = this.rr_n(this.b) },
+      0x119: { cycles: 8, action: () => this.c = this.rr_n(this.c) },
+      0x11A: { cycles: 8, action: () => this.d = this.rr_n(this.d) },
+      0x11B: { cycles: 8, action: () => this.e = this.rr_n(this.e) },
+      0x11C: { cycles: 8, action: () => this.h = this.rr_n(this.h) },
+      0x11D: { cycles: 8, action: () => this.l = this.rr_n(this.l) },
+      0x11E: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.rr_n(this.memoryMap.readByte(this.h))) },
+      0x11F: { cycles: 8, action: () => this.a = this.rr_n(this.a) },
+      0x120: { cycles: 8, action: () => this.b = this.sla_n(this.b) },
+      0x121: { cycles: 8, action: () => this.c = this.sla_n(this.c) },
+      0x122: { cycles: 8, action: () => this.d = this.sla_n(this.d) },
+      0x123: { cycles: 8, action: () => this.e = this.sla_n(this.e) },
+      0x124: { cycles: 8, action: () => this.h = this.sla_n(this.h) },
+      0x125: { cycles: 8, action: () => this.l = this.sla_n(this.l) },
+      0x126: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.sla_n(this.memoryMap.readByte(this.hl))) },
+      0x127: { cycles: 8, action: () => this.a = this.sla_n(this.a) },
+      0x128: { cycles: 8, action: () => this.b = this.sra_n(this.b) },
+      0x129: { cycles: 8, action: () => this.c = this.sra_n(this.c) },
+      0x12A: { cycles: 8, action: () => this.d = this.sra_n(this.d) },
+      0x12B: { cycles: 8, action: () => this.e = this.sra_n(this.e) },
+      0x12C: { cycles: 8, action: () => this.h = this.sra_n(this.h) },
+      0x12D: { cycles: 8, action: () => this.l = this.sra_n(this.l) },
+      0x12E: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.sra_n(this.memoryMap.readByte(this.hl))) },
+      0x12F: { cycles: 8, action: () => this.a = this.sra_n(this.a) },
+      0x130: { cycles: 8, action: () => this.b = this.swap(this.b) },
+      0x131: { cycles: 8, action: () => this.c = this.swap(this.c) },
+      0x132: { cycles: 8, action: () => this.d = this.swap(this.d) },
+      0x133: { cycles: 8, action: () => this.e = this.swap(this.e) },
+      0x134: { cycles: 8, action: () => this.h = this.swap(this.h) },
+      0x135: { cycles: 8, action: () => this.l = this.swap(this.l) },
+      0x136: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.swap(this.memoryMap.readByte(this.hl))) },
+      0x137: { cycles: 8, action: () => this.a = this.swap(this.a) },
+      0x138: { cycles: 8, action: () => this.b = this.srl_n(this.b) },
+      0x139: { cycles: 8, action: () => this.c = this.srl_n(this.c) },
+      0x13A: { cycles: 8, action: () => this.d = this.srl_n(this.d) },
+      0x13B: { cycles: 8, action: () => this.e = this.srl_n(this.e) },
+      0x13C: { cycles: 8, action: () => this.h = this.srl_n(this.h) },
+      0x13D: { cycles: 8, action: () => this.l = this.srl_n(this.l) },
+      0x13E: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.srl_n(this.memoryMap.readByte(this.hl))) },
+      0x13F: { cycles: 8, action: () => this.a = this.srl_n(this.a) },
+      0x140: null,
+      0x141: null,
+      0x142: null,
+      0x143: null,
+      0x144: null,
+      0x145: null,
+      0x146: null,
+      0x147: null,
+      0x148: null,
+      0x149: null,
+      0x14A: null,
+      0x14B: null,
+      0x14C: null,
+      0x14D: null,
+      0x14E: null,
+      0x14F: null,
+      0x150: null,
+      0x151: null,
+      0x152: null,
+      0x153: null,
+      0x154: null,
+      0x155: null,
+      0x156: null,
+      0x157: null,
+      0x158: null,
+      0x159: null,
+      0x15A: null,
+      0x15B: null,
+      0x15C: null,
+      0x15D: null,
+      0x15E: null,
+      0x15F: null,
+      0x160: null,
+      0x161: null,
+      0x162: null,
+      0x163: null,
+      0x164: null,
+      0x165: null,
+      0x166: null,
+      0x167: null,
+      0x168: null,
+      0x169: null,
+      0x16A: null,
+      0x16B: null,
+      0x16C: null,
+      0x16D: null,
+      0x16E: null,
+      0x16F: null,
+      0x170: null,
+      0x171: null,
+      0x172: null,
+      0x173: null,
+      0x174: null,
+      0x175: null,
+      0x176: null,
+      0x177: null,
+      0x178: null,
+      0x179: null,
+      0x17A: null,
+      0x17B: null,
+      0x17C: null,
+      0x17D: null,
+      0x17E: null,
+      0x17F: null,
+      0x180: null,
+      0x181: null,
+      0x182: null,
+      0x183: null,
+      0x184: null,
+      0x185: null,
+      0x186: null,
+      0x187: null,
+      0x188: null,
+      0x189: null,
+      0x18A: null,
+      0x18B: null,
+      0x18C: null,
+      0x18D: null,
+      0x18E: null,
+      0x18F: null,
+      0x190: null,
+      0x191: null,
+      0x192: null,
+      0x193: null,
+      0x194: null,
+      0x195: null,
+      0x196: null,
+      0x197: null,
+      0x198: null,
+      0x199: null,
+      0x19A: null,
+      0x19B: null,
+      0x19C: null,
+      0x19D: null,
+      0x19E: null,
+      0x19F: null,
+      0x1A0: null,
+      0x1A1: null,
+      0x1A2: null,
+      0x1A3: null,
+      0x1A4: null,
+      0x1A5: null,
+      0x1A6: null,
+      0x1A7: null,
+      0x1A8: null,
+      0x1A9: null,
+      0x1AA: null,
+      0x1AB: null,
+      0x1AC: null,
+      0x1AD: null,
+      0x1AE: null,
+      0x1AF: null,
+      0x1B0: null,
+      0x1B1: null,
+      0x1B2: null,
+      0x1B3: null,
+      0x1B4: null,
+      0x1B5: null,
+      0x1B6: null,
+      0x1B7: null,
+      0x1B8: null,
+      0x1B9: null,
+      0x1BA: null,
+      0x1BB: null,
+      0x1BC: null,
+      0x1BD: null,
+      0x1BE: null,
+      0x1BF: null,
+      0x1C0: null,
+      0x1C1: null,
+      0x1C2: null,
+      0x1C3: null,
+      0x1C4: null,
+      0x1C5: null,
+      0x1C6: null,
+      0x1C7: null,
+      0x1C8: null,
+      0x1C9: null,
+      0x1CA: null,
+      0x1CB: null,
+      0x1CC: null,
+      0x1CD: null,
+      0x1CE: null,
+      0x1CF: null,
+      0x1D0: null,
+      0x1D1: null,
+      0x1D2: null,
+      0x1D3: null,
+      0x1D4: null,
+      0x1D5: null,
+      0x1D6: null,
+      0x1D7: null,
+      0x1D8: null,
+      0x1D9: null,
+      0x1DA: null,
+      0x1DB: null,
+      0x1DC: null,
+      0x1DD: null,
+      0x1DE: null,
+      0x1DF: null,
+      0x1E0: null,
+      0x1E1: null,
+      0x1E2: null,
+      0x1E3: null,
+      0x1E4: null,
+      0x1E5: null,
+      0x1E6: null,
+      0x1E7: null,
+      0x1E8: null,
+      0x1E9: null,
+      0x1EA: null,
+      0x1EB: null,
+      0x1EC: null,
+      0x1ED: null,
+      0x1EE: null,
+      0x1EF: null,
+      0x1F0: null,
+      0x1F1: null,
+      0x1F2: null,
+      0x1F3: null,
+      0x1F4: null,
+      0x1F5: null,
+      0x1F6: null,
+      0x1F7: null,
+      0x1F8: null,
+      0x1F9: null,
+      0x1FA: null,
+      0x1FB: null,
+      0x1FC: null,
+      0x1FD: null,
+      0x1FE: null,
+      0x1FF: null,
     }
   }
 }
