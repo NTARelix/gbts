@@ -72,14 +72,14 @@ export class Cpu {
   public get pc(): number { return this.wordView[5] }
   public set pc(val: number) { this.wordView[5] = val }
 
-  public get fz(): number { return +!!(this.f & FLAG_ZERO) }
-  public set fz(val: number) { !!val ? this.f |= FLAG_ZERO : this.f &= FLAG_ZERO_N }
-  public get fn(): number { return +!!(this.f & FLAG_SUBTRACT) }
-  public set fn(val: number) { !!val ? this.f |= FLAG_SUBTRACT : this.f &= FLAG_SUBTRACT_N }
-  public get fh(): number { return +!!(this.f & FLAG_HALF_CARRY) }
-  public set fh(val: number) { !!val ? this.f |= FLAG_HALF_CARRY : this.f &= FLAG_HALF_CARRY_N }
-  public get fc(): number { return +!!(this.f & FLAG_CARRY) }
-  public set fc(val: number) { !!val ? this.f |= FLAG_CARRY : this.f &= FLAG_CARRY_N }
+  public get fz(): boolean { return !!(this.f & FLAG_ZERO) }
+  public set fz(set: boolean) { !!set ? this.f |= FLAG_ZERO : this.f &= FLAG_ZERO_N }
+  public get fn(): boolean { return !!(this.f & FLAG_SUBTRACT) }
+  public set fn(set: boolean) { !!set ? this.f |= FLAG_SUBTRACT : this.f &= FLAG_SUBTRACT_N }
+  public get fh(): boolean { return !!(this.f & FLAG_HALF_CARRY) }
+  public set fh(set: boolean) { !!set ? this.f |= FLAG_HALF_CARRY : this.f &= FLAG_HALF_CARRY_N }
+  public get fc(): boolean { return !!(this.f & FLAG_CARRY) }
+  public set fc(set: boolean) { !!set ? this.f |= FLAG_CARRY : this.f &= FLAG_CARRY_N }
 
   public tick(isExtension = false): void {
     const opcode = this.memoryMap.readByte(this.pc)
@@ -422,6 +422,20 @@ export class Cpu {
     return val & ~(1 << bitPosition)
   }
 
+  private jp_cc(isFlagSet: boolean): void {
+    const targetAddr = this.loadImmediateWord()
+    if (isFlagSet) {
+      this.pc = targetAddr
+    }
+  }
+
+  private jr_cc(isFlagSet: boolean): void {
+    const targetAddr = this.pc + toSigned(this.loadImmediateByte())
+    if (isFlagSet) {
+      this.pc = targetAddr
+    }
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -449,7 +463,7 @@ export class Cpu {
       0x015: { cycles: 4, action: () => this.d = this.dec(this.d) },
       0x016: { cycles: 4, action: () => this.d = this.loadImmediateByte() },
       0x017: { cycles: 4, action: () => this.rla() },
-      0x018: null,
+      0x018: { cycles: 8, action: () => this.pc += toSigned(this.loadImmediateByte()) },
       0x019: { cycles: 8, action: () => this.hl = this.add_hl(this.de) },
       0x01A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.de) },
       0x01B: { cycles: 8, action: () => this.de -= 1 },
@@ -457,7 +471,7 @@ export class Cpu {
       0x01D: { cycles: 4, action: () => this.e = this.dec(this.e) },
       0x01E: { cycles: 4, action: () => this.e = this.loadImmediateByte() },
       0x01F: { cycles: 4, action: () => this.rra() },
-      0x020: null,
+      0x020: { cycles: 8, action: () => this.jr_cc(!this.fz) },
       0x021: { cycles: 12, action: () => this.hl = this.loadImmediateWord() },
       0x022: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl++, this.a) },
       0x023: { cycles: 8, action: () => this.hl += 1 },
@@ -465,7 +479,7 @@ export class Cpu {
       0x025: { cycles: 4, action: () => this.h = this.dec(this.h) },
       0x026: { cycles: 4, action: () => this.h = this.loadImmediateByte() },
       0x027: { cycles: 4, action: () => this.daa() },
-      0x028: null,
+      0x028: { cycles: 8, action: () => this.jr_cc(this.fz) },
       0x029: { cycles: 8, action: () => this.hl = this.add_hl(this.hl) },
       0x02A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl++) },
       0x02B: { cycles: 8, action: () => this.hl -= 1 },
@@ -473,7 +487,7 @@ export class Cpu {
       0x02D: { cycles: 4, action: () => this.l = this.dec(this.l) },
       0x02E: { cycles: 4, action: () => this.l = this.loadImmediateByte() },
       0x02F: { cycles: 4, action: () => this.cpl() },
-      0x030: null,
+      0x030: { cycles: 8, action: () => this.jr_cc(!this.fc) },
       0x031: { cycles: 12, action: () => this.sp = this.loadImmediateWord() },
       0x032: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl--, this.a) },
       0x033: { cycles: 8, action: () => this.sp += 1 },
@@ -481,7 +495,7 @@ export class Cpu {
       0x035: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.dec(this.memoryMap.readByte(this.hl))) },
       0x036: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.loadImmediateByte()) },
       0x037: { cycles: 4, action: () => this.scf() },
-      0x038: null,
+      0x038: { cycles: 8, action: () => this.jr_cc(this.fc) },
       0x039: { cycles: 8, action: () => this.hl = this.add_hl(this.sp) },
       0x03A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl--) },
       0x03B: { cycles: 8, action: () => this.sp -= 1 },
@@ -619,15 +633,15 @@ export class Cpu {
       0x0BF: { cycles: 4, action: () => this.a = this.cp_a(this.a) },
       0x0C0: null,
       0x0C1: { cycles: 12, action: () => this.bc = this.popWord() },
-      0x0C2: null,
-      0x0C3: null,
+      0x0C2: { cycles: 12, action: () => this.jp_cc(!this.fz) },
+      0x0C3: { cycles: 12, action: () => this.pc = this.loadImmediateWord() },
       0x0C4: null,
       0x0C5: { cycles: 16, action: () => this.pushWord(this.bc) },
       0x0C6: { cycles: 8, action: () => this.a = this.add_a(this.loadImmediateByte()) },
       0x0C7: null,
       0x0C8: null,
       0x0C9: null,
-      0x0CA: null,
+      0x0CA: { cycles: 12, action: () => this.jp_cc(this.fz) },
       0x0CB: { cycles: 4, action: () => this.tick(true) },
       0x0CC: null,
       0x0CD: null,
@@ -635,7 +649,7 @@ export class Cpu {
       0x0CF: null,
       0x0D0: null,
       0x0D1: { cycles: 12, action: () => this.de = this.popWord() },
-      0x0D2: null,
+      0x0D2: { cycles: 12, action: () => this.jp_cc(!this.fc) },
       0x0D3: null,
       0x0D4: null,
       0x0D5: { cycles: 16, action: () => this.pushWord(this.de) },
@@ -643,7 +657,7 @@ export class Cpu {
       0x0D7: null,
       0x0D8: null,
       0x0D9: null,
-      0x0DA: null,
+      0x0DA: { cycles: 12, action: () => this.jp_cc(this.fc) },
       0x0DB: null,
       0x0DC: null,
       0x0DD: null,
@@ -658,7 +672,7 @@ export class Cpu {
       0x0E6: { cycles: 8, action: () => this.a = this.and_a(this.loadImmediateByte()) },
       0x0E7: null,
       0x0E8: { cycles: 16, action: () => this.add_sp() },
-      0x0E9: null,
+      0x0E9: { cycles: 4, action: () => this.pc = this.hl },
       0x0EA: { cycles: 16, action: () => this.memoryMap.writeByte(this.loadImmediateWord(), this.a) },
       0x0EB: null,
       0x0EC: null,
