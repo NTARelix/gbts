@@ -436,6 +436,20 @@ export class Cpu {
     }
   }
 
+  private call_nn(): void {
+    const fnAddr = this.loadImmediateWord()
+    this.pushWord(this.pc)
+    this.pc = fnAddr
+  }
+
+  private call_cc_nn(isFlagSet: boolean): void {
+    const fnAddr = this.loadImmediateWord()
+    if (isFlagSet) {
+      this.pushWord(this.pc)
+      this.pc = fnAddr
+    }
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -635,7 +649,7 @@ export class Cpu {
       0x0C1: { cycles: 12, action: () => this.bc = this.popWord() },
       0x0C2: { cycles: 12, action: () => this.jp_cc(!this.fz) },
       0x0C3: { cycles: 12, action: () => this.pc = this.loadImmediateWord() },
-      0x0C4: null,
+      0x0C4: { cycles: 12, action: () => this.call_cc_nn(!this.fz) },
       0x0C5: { cycles: 16, action: () => this.pushWord(this.bc) },
       0x0C6: { cycles: 8, action: () => this.a = this.add_a(this.loadImmediateByte()) },
       0x0C7: null,
@@ -643,15 +657,15 @@ export class Cpu {
       0x0C9: null,
       0x0CA: { cycles: 12, action: () => this.jp_cc(this.fz) },
       0x0CB: { cycles: 4, action: () => this.tick(true) },
-      0x0CC: null,
-      0x0CD: null,
+      0x0CC: { cycles: 12, action: () => this.call_cc_nn(this.fz) },
+      0x0CD: { cycles: 12, action: () => this.call_nn() },
       0x0CE: { cycles: 8, action: () => this.a = this.adc_a(this.loadImmediateByte()) },
       0x0CF: null,
       0x0D0: null,
       0x0D1: { cycles: 12, action: () => this.de = this.popWord() },
       0x0D2: { cycles: 12, action: () => this.jp_cc(!this.fc) },
       0x0D3: null,
-      0x0D4: null,
+      0x0D4: { cycles: 12, action: () => this.call_cc_nn(!this.fc) },
       0x0D5: { cycles: 16, action: () => this.pushWord(this.de) },
       0x0D6: { cycles: 8, action: () => this.a = this.sub_a(this.loadImmediateByte()) },
       0x0D7: null,
@@ -659,7 +673,7 @@ export class Cpu {
       0x0D9: null,
       0x0DA: { cycles: 12, action: () => this.jp_cc(this.fc) },
       0x0DB: null,
-      0x0DC: null,
+      0x0DC: { cycles: 12, action: () => this.call_cc_nn(this.fc) },
       0x0DD: null,
       0x0DE: null,
       0x0DF: null,
