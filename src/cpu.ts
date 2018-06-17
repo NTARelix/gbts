@@ -450,6 +450,11 @@ export class Cpu {
     }
   }
 
+  private rst(addr: number): void {
+    this.pushWord(this.pc)
+    this.pc = addr
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -652,7 +657,7 @@ export class Cpu {
       0x0C4: { cycles: 12, action: () => this.call_cc_nn(!this.fz) },
       0x0C5: { cycles: 16, action: () => this.pushWord(this.bc) },
       0x0C6: { cycles: 8, action: () => this.a = this.add_a(this.loadImmediateByte()) },
-      0x0C7: null,
+      0x0C7: { cycles: 32, action: () => this.rst(0x00) },
       0x0C8: null,
       0x0C9: null,
       0x0CA: { cycles: 12, action: () => this.jp_cc(this.fz) },
@@ -660,7 +665,7 @@ export class Cpu {
       0x0CC: { cycles: 12, action: () => this.call_cc_nn(this.fz) },
       0x0CD: { cycles: 12, action: () => this.call_nn() },
       0x0CE: { cycles: 8, action: () => this.a = this.adc_a(this.loadImmediateByte()) },
-      0x0CF: null,
+      0x0CF: { cycles: 32, action: () => this.rst(0x08) },
       0x0D0: null,
       0x0D1: { cycles: 12, action: () => this.de = this.popWord() },
       0x0D2: { cycles: 12, action: () => this.jp_cc(!this.fc) },
@@ -668,7 +673,7 @@ export class Cpu {
       0x0D4: { cycles: 12, action: () => this.call_cc_nn(!this.fc) },
       0x0D5: { cycles: 16, action: () => this.pushWord(this.de) },
       0x0D6: { cycles: 8, action: () => this.a = this.sub_a(this.loadImmediateByte()) },
-      0x0D7: null,
+      0x0D7: { cycles: 32, action: () => this.rst(0x10) },
       0x0D8: null,
       0x0D9: null,
       0x0DA: { cycles: 12, action: () => this.jp_cc(this.fc) },
@@ -676,7 +681,7 @@ export class Cpu {
       0x0DC: { cycles: 12, action: () => this.call_cc_nn(this.fc) },
       0x0DD: null,
       0x0DE: null,
-      0x0DF: null,
+      0x0DF: { cycles: 32, action: () => this.rst(0x18) },
       0x0E0: { cycles: 12, action: () => this.memoryMap.writeByte(0xFF00 + this.loadImmediateByte(), this.a) },
       0x0E1: { cycles: 12, action: () => this.hl = this.popWord() },
       0x0E2: { cycles: 8, action: () => this.memoryMap.writeByte(0xFF00 + this.c, this.a) },
@@ -684,7 +689,7 @@ export class Cpu {
       0x0E4: null,
       0x0E5: { cycles: 16, action: () => this.pushWord(this.hl) },
       0x0E6: { cycles: 8, action: () => this.a = this.and_a(this.loadImmediateByte()) },
-      0x0E7: null,
+      0x0E7: { cycles: 32, action: () => this.rst(0x20) },
       0x0E8: { cycles: 16, action: () => this.add_sp() },
       0x0E9: { cycles: 4, action: () => this.pc = this.hl },
       0x0EA: { cycles: 16, action: () => this.memoryMap.writeByte(this.loadImmediateWord(), this.a) },
@@ -692,7 +697,7 @@ export class Cpu {
       0x0EC: null,
       0x0ED: null,
       0x0EE: { cycles: 8, action: () => this.a = this.xor_a(this.loadImmediateByte()) },
-      0x0EF: null,
+      0x0EF: { cycles: 32, action: () => this.rst(0x28) },
       0x0F0: { cycles: 12, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.loadImmediateByte()) },
       0x0F1: { cycles: 12, action: () => this.af = this.popWord() },
       0x0F2: { cycles: 8, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.c) },
@@ -700,7 +705,7 @@ export class Cpu {
       0x0F4: null,
       0x0F5: { cycles: 16, action: () => this.pushWord(this.af) },
       0x0F6: { cycles: 8, action: () => this.a = this.or_a(this.loadImmediateByte()) },
-      0x0F7: null,
+      0x0F7: { cycles: 32, action: () => this.rst(0x30) },
       0x0F8: { cycles: 12, action: () => this.hl = this.sp + toSigned(this.loadImmediateByte()) },
       0x0F9: { cycles: 8, action: () => this.sp = this.hl },
       0x0FA: { cycles: 16, action: () => this.ld_hl_sp_n() },
@@ -708,7 +713,7 @@ export class Cpu {
       0x0FC: null,
       0x0FD: null,
       0x0FE: { cycles: 8, action: () => this.a = this.cp_a(this.loadImmediateByte()) },
-      0x0FF: null,
+      0x0FF: { cycles: 32, action: () => this.rst(0x38) },
       0x100: { cycles: 4, action: () => this.b = this.rlc_n(this.b) },
       0x101: { cycles: 4, action: () => this.c = this.rlc_n(this.c) },
       0x102: { cycles: 4, action: () => this.d = this.rlc_n(this.d) },
