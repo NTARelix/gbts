@@ -14,6 +14,9 @@ export class Cpu {
   private readonly wordView: Uint16Array
   private readonly operations: IOperationMap
   private readonly cbOperations: IOperationMap
+  private isHalted: boolean
+  private isStopped: boolean
+  private isInterruptEnabled: boolean
   private totalCycles: number
   private opCycles: number
 
@@ -23,7 +26,10 @@ export class Cpu {
     this.byteView = new Uint8Array(registerBuffer)
     this.wordView = new Uint16Array(registerBuffer)
     this.operations = this.generateOperationMap()
-    this.operations = this.generateCbOperationMap()
+    this.cbOperations = this.generateCbOperationMap()
+    this.isHalted = false
+    this.isStopped = false
+    this.isInterruptEnabled = false
     this.totalCycles = 0
     this.reset()
   }
@@ -225,6 +231,57 @@ export class Cpu {
     return word
   }
 
+  private swap(val: number): number {
+    const BYTE_HIGH = 0xF0
+    const BYTE_LOW = 0x0F
+    const result = ((val & BYTE_HIGH) >> 4) | ((val & BYTE_LOW) << 4)
+    const z = result === 0
+    const n = 0
+    const h = 0
+    const c = 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+    return result
+  }
+
+  private daa(): void {
+    let corr = 0
+    corr |= this.f & FLAG_HALF_CARRY ? 0x06 : 0x00
+    corr |= this.f & FLAG_CARRY ? 0x60 : 0x00
+    if (this.f & FLAG_SUBTRACT) {
+      this.a -= corr
+    } else {
+      corr |= (this.a & 0x0F) > 0x09 ? 0x06 : 0x00
+      corr |= this.a > 0x99 ? 0x60 : 0x00
+      this.a += corr
+    }
+    const z = this.a === 0
+    const n = this.f & FLAG_SUBTRACT
+    const h = 0
+    const c = (corr & 0x60) !== 0
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private cpl(): void {
+    this.a = ~this.a
+    this.f |= FLAG_SUBTRACT & FLAG_HALF_CARRY
+  }
+
+  private ccf(): void {
+    const z = this.f & FLAG_ZERO
+    const n = 0
+    const h = 0
+    const c = !(this.f & FLAG_CARRY)
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
+  private scf(): void {
+    const z = this.f & FLAG_ZERO
+    const n = 0
+    const h = 0
+    const c = 1
+    this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
+  }
+
   private generateOperationMap(): IOperationMap {
     return {
       // tslint:disable-next-line:no-empty
@@ -244,7 +301,7 @@ export class Cpu {
       0x0D: { cycles: 4, action: () => this.c = this.dec(this.c) },
       0x0E: { cycles: 4, action: () => this.c = this.loadImmediateByte() },
       0x0F: null,
-      0x10: null,
+      0x10: { cycles: 4, action: () => this.isStopped = true },
       0x11: { cycles: 12, action: () => this.de = this.loadImmediateWord() },
       0x12: { cycles: 8, action: () => this.memoryMap.writeByte(this.de, this.a) },
       0x13: { cycles: 8, action: () => this.de += 1 },
@@ -267,7 +324,7 @@ export class Cpu {
       0x24: { cycles: 4, action: () => this.h = this.inc(this.h) },
       0x25: { cycles: 4, action: () => this.h = this.dec(this.h) },
       0x26: { cycles: 4, action: () => this.h = this.loadImmediateByte() },
-      0x27: null,
+      0x27: { cycles: 4, action: () => this.daa() },
       0x28: null,
       0x29: { cycles: 8, action: () => this.hl = this.add_hl(this.hl) },
       0x2A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl++) },
@@ -275,7 +332,7 @@ export class Cpu {
       0x2C: { cycles: 4, action: () => this.l = this.inc(this.l) },
       0x2D: { cycles: 4, action: () => this.l = this.dec(this.l) },
       0x2E: { cycles: 4, action: () => this.l = this.loadImmediateByte() },
-      0x2F: null,
+      0x2F: { cycles: 4, action: () => this.cpl() },
       0x30: null,
       0x31: { cycles: 12, action: () => this.sp = this.loadImmediateWord() },
       0x32: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl--, this.a) },
@@ -283,7 +340,7 @@ export class Cpu {
       0x34: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.inc(this.memoryMap.readByte(this.hl))) },
       0x35: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.dec(this.memoryMap.readByte(this.hl))) },
       0x36: { cycles: 12, action: () => this.memoryMap.writeByte(this.hl, this.loadImmediateByte()) },
-      0x37: null,
+      0x37: { cycles: 4, action: () => this.scf() },
       0x38: null,
       0x39: { cycles: 8, action: () => this.hl = this.add_hl(this.sp) },
       0x3A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.hl--) },
@@ -291,7 +348,7 @@ export class Cpu {
       0x3C: { cycles: 4, action: () => this.a = this.inc(this.a) },
       0x3D: { cycles: 4, action: () => this.a = this.dec(this.a) },
       0x3E: { cycles: 8, action: () => this.a = this.loadImmediateByte() },
-      0x3F: null,
+      0x3F: { cycles: 4, action: () => this.ccf() },
       0x40: { cycles: 4, action: () => this.b = this.b },
       0x41: { cycles: 4, action: () => this.b = this.c },
       0x42: { cycles: 4, action: () => this.b = this.d },
@@ -346,7 +403,7 @@ export class Cpu {
       0x73: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.e) },
       0x74: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.h) },
       0x75: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.l) },
-      0x76: null,
+      0x76: { cycles: 4, action: () => this.isHalted = true },
       0x77: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.a) },
       0x78: { cycles: 4, action: () => this.a = this.b },
       0x79: { cycles: 4, action: () => this.a = this.c },
@@ -471,7 +528,7 @@ export class Cpu {
       0xF0: { cycles: 12, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.loadImmediateByte()) },
       0xF1: { cycles: 12, action: () => this.af = this.popWord() },
       0xF2: { cycles: 8, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.c) },
-      0xF3: null,
+      0xF3: { cycles: 4, action: () => this.isInterruptEnabled = false },
       0xF4: null,
       0xF5: { cycles: 16, action: () => this.pushWord(this.af) },
       0xF6: { cycles: 8, action: () => this.a = this.or_a(this.loadImmediateByte()) },
@@ -479,7 +536,7 @@ export class Cpu {
       0xF8: { cycles: 12, action: () => this.hl = this.sp + toSigned(this.loadImmediateByte()) },
       0xF9: { cycles: 8, action: () => this.sp = this.hl },
       0xFA: { cycles: 16, action: () => this.ld_hl_sp_n() },
-      0xFB: null,
+      0xFB: { cycles: 4, action: () => this.isInterruptEnabled = true },
       0xFC: null,
       0xFD: null,
       0xFE: { cycles: 8, action: () => this.a = this.cp_a(this.loadImmediateByte()) },
@@ -538,14 +595,14 @@ export class Cpu {
       0x2D: null,
       0x2E: null,
       0x2F: null,
-      0x30: null,
-      0x31: null,
-      0x32: null,
-      0x33: null,
-      0x34: null,
-      0x35: null,
-      0x36: null,
-      0x37: null,
+      0x30: { cycles: 8, action: () => this.b = this.swap(this.b) },
+      0x31: { cycles: 8, action: () => this.c = this.swap(this.c) },
+      0x32: { cycles: 8, action: () => this.d = this.swap(this.d) },
+      0x33: { cycles: 8, action: () => this.e = this.swap(this.e) },
+      0x34: { cycles: 8, action: () => this.h = this.swap(this.h) },
+      0x35: { cycles: 8, action: () => this.l = this.swap(this.l) },
+      0x36: { cycles: 16, action: () => this.memoryMap.writeByte(this.hl, this.swap(this.memoryMap.readByte(this.hl))) },
+      0x37: { cycles: 8, action: () => this.a = this.swap(this.a) },
       0x38: null,
       0x39: null,
       0x3A: null,
