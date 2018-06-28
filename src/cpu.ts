@@ -3,8 +3,6 @@ import { IOperationMap } from './ioperation-map'
 import { toHex, toSigned } from './math'
 import { MemoryMap } from './memory-map'
 
-const EXTENSION_CODE = 0xCB
-
 const FLAG_ZERO =         0b10000000
 const FLAG_ZERO_N =       0b01111111
 const FLAG_SUBTRACT =     0b01000000

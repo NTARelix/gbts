@@ -58,7 +58,7 @@ export class MemoryMap {
     } else if (addr < 0xA000) {
       // VRAM
       throw new Error('VRAM not yet implemented')
-    } else if (addr < 0x0C000) {
+    } else if (addr < 0xC000) {
       // External RAM
       throw new Error('External RAM not yet implemented')
     } else if (addr < 0xE000) {
@@ -82,11 +82,15 @@ export class MemoryMap {
   }
 
   public writeWord(addr: number, value: number): void {
-    const MASK_LOW = 0b0000000011111111
-    const MASK_HIGH = 0b1111111100000000
+    const MASK_LOW = 0x00FF
+    const MASK_HIGH = 0xFF00
     const low = value & MASK_LOW
     const high = (value & MASK_HIGH) >> 8
     this.writeByte(addr, low)
     this.writeByte(addr + 1, high)
+  }
+
+  public reset(): void {
+    // TODO: zero VRAM
   }
 }
