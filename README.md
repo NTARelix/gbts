@@ -1,6 +1,6 @@
 # GBTS - Game Boy Emulator
 
-This is a WIP emulator for the original Nintendo Game Boy, written in TypeScript with minimal run-time dependencies.
+This is a WIP emulator of the original Nintendo Game Boy, written in TypeScript with minimal run-time dependencies.
 
 I've been following a variety of resources in the following repo to get what I currently have here: https://github.com/avivace/awesome-gbdev
 
