@@ -4,6 +4,10 @@ This is a WIP emulator for the original Nintendo Game Boy, written in TypeScript
 
 I've been following a variety of resources in the following repo to get what I currently have here: https://github.com/avivace/awesome-gbdev
 
+## Quickstart
+1. `npm install && npm start`
+2. Open http://localhost:8080 in browser
+
 ## Features
 - `[X]` Webpack development server with hot reload
 - `[X]` General hardware architecture
