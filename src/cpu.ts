@@ -211,7 +211,7 @@ export class Cpu {
     const z = newVal === 0
     const n = 1
     const h = (((newVal & 0xF) + (1 & 0xF)) > 0xF)
-    const c = this.f & FLAG_HALF_CARRY
+    const c = this.f & FLAG_CARRY
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
     return newVal
   }
