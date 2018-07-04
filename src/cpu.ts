@@ -36,7 +36,12 @@ export class Cpu {
   }
 
   public reset(): void {
-    this.pc = 0x100
+    this.af = 0x01B0
+    this.bc = 0x0013
+    this.de = 0x00D8
+    this.hl = 0x014D
+    this.sp = 0xFFFE
+    this.pc = 0x0100
   }
 
   public get a(): number { return this.byteView[1] }
