@@ -23,21 +23,21 @@ export class MemoryMap {
       // ROM0
       return this.cartData[addr]
     } else if (addr < 0x8000) {
-      // ROM1 (unbanked)
-      throw new Error(`R[${toHex(addr, 4)}] ROM1 not yet implemented`)
+      // ROM Bank
+      throw new Error(`R[${toHex(addr, 4)}] Banked ROM not yet implemented`)
     } else if (addr < 0xA000) {
       // VRAM
       throw new Error(`R[${toHex(addr, 4)}] VRAM not yet implemented`)
-    } else if (addr < 0x0C000) {
+    } else if (addr < 0xC000) {
       // External RAM
       throw new Error(`R[${toHex(addr, 4)}] External RAM not yet implemented`)
     } else if (addr < 0xE000) {
       // Working RAM
       throw new Error(`R[${toHex(addr, 4)}] Working RAM not yet implemented`)
-    } else if (addr < 0xFDFF) {
+    } else if (addr < 0xFE00) {
       // Working RAM mirror
       throw new Error(`R[${toHex(addr, 4)}] Working RAM mirror not yet implemented`)
-    } else if (addr < 0xFE00) {
+    } else if (addr < 0xFF00) {
       // Object Attribute Memory (OAM)
       throw new Error(`R[${toHex(addr, 4)}] OAM not yet implemented`)
     } else if (addr === 0xFF00) {
@@ -61,8 +61,9 @@ export class MemoryMap {
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       throw new Error(`R[${toHex(addr, 4)}] Zero-page RAM not yet implemented`)
+    } else {
+      throw new Error(`R[${toHex(addr, 4)}] Unmapped address space`)
     }
-    throw new Error(`R[${toHex(addr, 4)}] Unmapped address space`)
   }
 
   public readWord(addr: number): number {
@@ -77,8 +78,8 @@ export class MemoryMap {
       // ROM0
       this.cartData[addr] = value
     } else if (addr < 0x8000) {
-      // ROM1 (unbanked)
-      throw new Error(`W[${toHex(addr, 4)}] ROM1 not yet implemented`)
+      // ROM bank
+      throw new Error(`W[${toHex(addr, 4)}] Banked ROM not yet implemented`)
     } else if (addr < 0xA000) {
       // VRAM
       throw new Error(`W[${toHex(addr, 4)}] VRAM not yet implemented`)
@@ -88,10 +89,10 @@ export class MemoryMap {
     } else if (addr < 0xE000) {
       // Working RAM
       this.workingRam[addr] = value
-    } else if (addr < 0xFDFF) {
+    } else if (addr < 0xFE00) {
       // Working RAM mirror
       this.workingRam[addr - 0x1000] = value
-    } else if (addr < 0xFE00) {
+    } else if (addr < 0xFF00) {
       // Object Attribute Memory (OAM)
       throw new Error(`W[${toHex(addr, 4)}] OAM not yet implemented`)
     } else if (addr < 0xFF80) {
