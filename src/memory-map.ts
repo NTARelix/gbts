@@ -10,12 +10,14 @@ export class MemoryMap {
   private readonly input: Input
   private readonly workingRam: Uint8Array
   private readonly ioRam: Uint8Array
+  private readonly zeroPageRam: Uint8Array
 
   constructor(cart: ArrayBuffer, input: Input) {
     this.cartData = new Uint8Array(cart)
     this.input = new Input()
     this.workingRam = new Uint8Array()
     this.ioRam = new Uint8Array()
+    this.zeroPageRam = new Uint8Array()
   }
 
   public readByte(addr: number): number {
@@ -60,7 +62,7 @@ export class MemoryMap {
       throw new Error(`R[${toHex(addr, 4)}] Memory-mapped I/O not yet implemented`)
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
-      throw new Error(`R[${toHex(addr, 4)}] Zero-page RAM not yet implemented`)
+      return this.zeroPageRam[addr - 0xFF80]
     } else {
       throw new Error(`R[${toHex(addr, 4)}] Unmapped address space`)
     }
@@ -100,7 +102,7 @@ export class MemoryMap {
       this.ioRam[addr - 0xFF00] = value
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
-      throw new Error(`W[${toHex(addr, 4)}] Zero-page RAM not yet implemented`)
+      this.zeroPageRam[addr - 0xFF80] = value
     } else {
       throw new Error(`W[${toHex(addr, 4)}] Unmapped address space`)
     }
