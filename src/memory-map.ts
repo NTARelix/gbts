@@ -8,6 +8,7 @@ const BIT_STANDARD_BUTTONS = 0b00010000
 export class MemoryMap {
   private readonly cartData: Uint8Array
   private readonly input: Input
+  private readonly vRam: Uint8Array
   private readonly workingRam: Uint8Array
   private readonly ioRam: Uint8Array
   private readonly zeroPageRam: Uint8Array
@@ -15,6 +16,7 @@ export class MemoryMap {
   constructor(cart: ArrayBuffer, input: Input) {
     this.cartData = new Uint8Array(cart)
     this.input = new Input()
+    this.vRam = new Uint8Array(0xA000 - 0x8000)
     this.workingRam = new Uint8Array(0xE000 - 0xC000)
     this.ioRam = new Uint8Array(0xFF80 - 0xFF00)
     this.zeroPageRam = new Uint8Array(0xFFFF - 0xFF80)
@@ -29,7 +31,7 @@ export class MemoryMap {
       throw new Error(`R[${toHex(addr, 4)}] Banked ROM not yet implemented`)
     } else if (addr < 0xA000) {
       // VRAM
-      throw new Error(`R[${toHex(addr, 4)}] VRAM not yet implemented`)
+      return this.vRam[addr - 0x8000]
     } else if (addr < 0xC000) {
       // External RAM
       throw new Error(`R[${toHex(addr, 4)}] External RAM not yet implemented`)
@@ -84,7 +86,7 @@ export class MemoryMap {
       throw new Error(`W[${toHex(addr, 4)}] Banked ROM not yet implemented`)
     } else if (addr < 0xA000) {
       // VRAM
-      throw new Error(`W[${toHex(addr, 4)}] VRAM not yet implemented`)
+      this.vRam[addr - 0x8000] = value
     } else if (addr < 0xC000) {
       // External RAM
       throw new Error(`W[${toHex(addr, 4)}] External RAM not yet implemented`)
