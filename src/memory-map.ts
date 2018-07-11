@@ -15,9 +15,9 @@ export class MemoryMap {
   constructor(cart: ArrayBuffer, input: Input) {
     this.cartData = new Uint8Array(cart)
     this.input = new Input()
-    this.workingRam = new Uint8Array()
-    this.ioRam = new Uint8Array()
-    this.zeroPageRam = new Uint8Array()
+    this.workingRam = new Uint8Array(0xE000 - 0xC000)
+    this.ioRam = new Uint8Array(0xFF80 - 0xFF00)
+    this.zeroPageRam = new Uint8Array(0xFFFF - 0xFF80)
   }
 
   public readByte(addr: number): number {
