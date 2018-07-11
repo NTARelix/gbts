@@ -59,7 +59,7 @@ export class MemoryMap {
       )
     } else if (addr < 0xFF80) {
       // Memory-mapped I/O
-      throw new Error(`R[${toHex(addr, 4)}] Memory-mapped I/O not yet implemented`)
+      return this.ioRam[addr - 0xFF00]
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       return this.zeroPageRam[addr - 0xFF80]
