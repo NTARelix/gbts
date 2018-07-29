@@ -433,9 +433,9 @@ export class Cpu {
   }
 
   private jr_cc(isFlagSet: boolean): void {
-    const targetAddr = this.pc + toSigned(this.loadImmediateByte())
+    const relativeTarget = toSigned(this.loadImmediateByte())
     if (isFlagSet) {
-      this.pc = targetAddr
+      this.pc += relativeTarget
     }
   }
 
@@ -496,7 +496,7 @@ export class Cpu {
       0x015: { cycles: 4, action: () => this.d = this.dec(this.d) },
       0x016: { cycles: 4, action: () => this.d = this.loadImmediateByte() },
       0x017: { cycles: 4, action: () => this.rla() },
-      0x018: { cycles: 8, action: () => this.pc += toSigned(this.loadImmediateByte()) },
+      0x018: { cycles: 8, action: () => this.jr_cc(true) },
       0x019: { cycles: 8, action: () => this.hl = this.add_hl(this.de) },
       0x01A: { cycles: 8, action: () => this.a = this.memoryMap.readByte(this.de) },
       0x01B: { cycles: 8, action: () => this.de -= 1 },
