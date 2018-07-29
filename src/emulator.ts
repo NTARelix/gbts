@@ -3,13 +3,12 @@ import { Input } from './input'
 import { MemoryMap } from './memory-map'
 
 export class Emulator {
-  public readonly input: Input
   public readonly memoryMap: MemoryMap
   public readonly cpu: Cpu
 
-  constructor(cartData: ArrayBuffer) {
-    this.input = new Input()
-    this.memoryMap = new MemoryMap(cartData, this.input)
+  constructor(bootData: ArrayBuffer, cartData: ArrayBuffer) {
+    const input = new Input()
+    this.memoryMap = new MemoryMap(bootData, cartData, input)
     this.cpu = new Cpu(this.memoryMap)
   }
 

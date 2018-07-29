@@ -5,7 +5,11 @@ import { toHex } from './math'
 const BIT_DIRECTION_BUTTONS = 0b00010000
 const BIT_STANDARD_BUTTONS = 0b00010000
 
+const ADDR_BOOTING_FLAG = 0xFF50
+const BIT_IS_BOOTING = 0b00000001
+
 export class MemoryMap {
+  private readonly bootData: Uint8Array
   private readonly cartData: Uint8Array
   private readonly input: Input
   private readonly vRam: Uint8Array
@@ -13,9 +17,10 @@ export class MemoryMap {
   private readonly ioRam: Uint8Array
   private readonly zeroPageRam: Uint8Array
 
-  constructor(cart: ArrayBuffer, input: Input) {
+  constructor(boot: ArrayBuffer, cart: ArrayBuffer, input: Input) {
+    this.bootData = new Uint8Array(boot)
     this.cartData = new Uint8Array(cart)
-    this.input = new Input()
+    this.input = input
     this.vRam = new Uint8Array(0xA000 - 0x8000)
     this.workingRam = new Uint8Array(0xE000 - 0xC000)
     this.ioRam = new Uint8Array(0xFF80 - 0xFF00)
@@ -23,7 +28,9 @@ export class MemoryMap {
   }
 
   public readByte(addr: number): number {
-    if (addr < 0x4000) {
+    if (this.isBooting() && addr < 0x0100) {
+      return this.bootData[addr]
+    } else if (addr < 0x4000) {
       // ROM0
       return this.cartData[addr]
     } else if (addr < 0x8000) {
@@ -120,6 +127,13 @@ export class MemoryMap {
   }
 
   public reset(): void {
-    // TODO: zero VRAM
+    this.vRam.fill(0)
+    this.workingRam.fill(0)
+    this.ioRam.fill(0)
+    this.zeroPageRam.fill(0)
+  }
+
+  private isBooting(): boolean {
+    return !(this.ioRam[ADDR_BOOTING_FLAG] & BIT_IS_BOOTING)
   }
 }
