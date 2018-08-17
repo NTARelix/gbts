@@ -134,6 +134,6 @@ export class MemoryMap {
   }
 
   private isBooting(): boolean {
-    return !(this.ioRam[ADDR_BOOTING_FLAG] & BIT_IS_BOOTING)
+    return !(this.ioRam[ADDR_BOOTING_FLAG - 0xFF00] & BIT_IS_BOOTING)
   }
 }
