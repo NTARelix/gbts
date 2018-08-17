@@ -97,10 +97,10 @@ export class MemoryMap {
       throw new Error(`W[${toHex(addr, 4)}] External RAM not yet implemented`)
     } else if (addr < 0xE000) {
       // Working RAM
-      this.workingRam[addr] = value
+      this.workingRam[addr - 0xC000] = value
     } else if (addr < 0xFE00) {
       // Working RAM mirror
-      this.workingRam[addr - 0x1000] = value
+      this.workingRam[addr - 0x1000 - 0xC000] = value
     } else if (addr < 0xFF00) {
       // Object Attribute Memory (OAM)
       throw new Error(`W[${toHex(addr, 4)}] OAM not yet implemented`)
