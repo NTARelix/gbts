@@ -86,11 +86,9 @@ export class MemoryMap {
 
   public writeByte(addr: number, value: number): void {
     if (addr < 0x4000) {
-      // ROM0
-      this.cartData[addr] = value
+      // ROM0 read-only
     } else if (addr < 0x8000) {
-      // ROM bank
-      throw new Error(`W[${toHex(addr, 4)}] Banked ROM not yet implemented`)
+      // ROM bank read-only
     } else if (addr < 0xA000) {
       // VRAM
       this.vRam[addr - 0x8000] = value
