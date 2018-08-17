@@ -8,28 +8,6 @@ I've been following a variety of resources in the following repo to get what I c
 1. `npm install && npm start`
 2. Open http://localhost:8080 in browser
 
-## Features
-- `[X]` Webpack development server with hot reload
-- `[X]` General hardware architecture
-- `[X]` Simple debugging UI (view registers, view RAM at PC, step through instructions, simple breakpoints)
-- `[ ]` Ability to load and run bootrom
-- `[X]` First ROM bank
-- `[ ]` Remaining ROM banks
-- `[ ]` VRAM
-- `[ ]` External RAM
-- `[X]` Working RAM
-- `[X]` Working RAM mirror
-- `[ ]` OAM
-- `[ ]` I/O
-- `[ ]` Zero-page RAM
-- `[X]` CPU fetch-decode-execute cycle
-- `[X]` All CPU instructions
-- `[ ]` PPU (experiment with WebGL)
+## Goals
 
-More features necessary, but unknown...
-
-## Bells and Whistles
-- `[ ]` Save/load state
-- `[ ]` Link-cable over web (WebSockets or WebRTC)
-- `[ ]` Rewind
-- `[ ]` Cheat codes
+My initial goal is to be able to play Tetris because it's supposedly one of the simplest games to emulate. I'm keeping track of the various tasks necessary to achieve this goal via a GitHub project.
