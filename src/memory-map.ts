@@ -47,7 +47,7 @@ export class MemoryMap {
       return this.workingRam[addr - 0xC000]
     } else if (addr < 0xFE00) {
       // Working RAM mirror
-      return this.workingRam[addr - 0x1000 - 0xC000]
+      return this.workingRam[addr - 0x2000 - 0xC000]
     } else if (addr < 0xFF00) {
       // Object Attribute Memory (OAM)
       throw new Error(`R[${toHex(addr, 4)}] OAM not yet implemented`)
