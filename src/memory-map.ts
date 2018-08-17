@@ -44,10 +44,10 @@ export class MemoryMap {
       throw new Error(`R[${toHex(addr, 4)}] External RAM not yet implemented`)
     } else if (addr < 0xE000) {
       // Working RAM
-      throw new Error(`R[${toHex(addr, 4)}] Working RAM not yet implemented`)
+      return this.workingRam[addr - 0xC000]
     } else if (addr < 0xFE00) {
       // Working RAM mirror
-      throw new Error(`R[${toHex(addr, 4)}] Working RAM mirror not yet implemented`)
+      return this.workingRam[addr - 0x1000 - 0xC000]
     } else if (addr < 0xFF00) {
       // Object Attribute Memory (OAM)
       throw new Error(`R[${toHex(addr, 4)}] OAM not yet implemented`)
