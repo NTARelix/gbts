@@ -6,7 +6,7 @@ const BIT_DIRECTION_BUTTONS = 0b00010000
 const BIT_STANDARD_BUTTONS = 0b00010000
 
 const ADDR_BOOTING_FLAG = 0xFF50
-const BIT_IS_BOOTING = 0b00000001
+const FLAG_IS_NOT_BOOTING = 0b00000001
 
 export class MemoryMap {
   private readonly bootData: Uint8Array
@@ -134,6 +134,6 @@ export class MemoryMap {
   }
 
   private isBooting(): boolean {
-    return !(this.ioRam[ADDR_BOOTING_FLAG - 0xFF00] & BIT_IS_BOOTING)
+    return !(this.ioRam[ADDR_BOOTING_FLAG - 0xFF00] & FLAG_IS_NOT_BOOTING)
   }
 }
