@@ -28,9 +28,11 @@ export class MemoryMap {
   }
 
   public readByte(addr: number): number {
-    if (this.isBooting() && addr < 0x0100) {
+    if (addr < 0 || addr > 0xFFFF) {
+      throw new Error(`R[${addr}] Address out of bounds`)
+    } else if (this.isBooting() && addr < 0x0100) {
       return this.bootData[addr]
-    } else if (addr < 0x4000) {
+    } else if (addr >= 0 && addr < 0x4000) {
       // ROM0
       return this.cartData[addr]
     } else if (addr < 0x8000) {
@@ -72,8 +74,6 @@ export class MemoryMap {
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       return this.zeroPageRam[addr - 0xFF80]
-    } else {
-      throw new Error(`R[${toHex(addr, 4)}] Unmapped address space`)
     }
   }
 
@@ -85,7 +85,9 @@ export class MemoryMap {
   }
 
   public writeByte(addr: number, value: number): void {
-    if (addr < 0x4000) {
+    if (addr < 0 || addr > 0xFFFF) {
+      throw new Error(`W[${addr}] Address out of bounds`)
+    } else if (addr < 0x4000) {
       // ROM0 read-only
     } else if (addr < 0x8000) {
       // ROM bank read-only
@@ -110,8 +112,6 @@ export class MemoryMap {
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       this.zeroPageRam[addr - 0xFF80] = value
-    } else {
-      throw new Error(`W[${toHex(addr, 4)}] Unmapped address space`)
     }
   }
 
