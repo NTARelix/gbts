@@ -24,7 +24,7 @@ export class MemoryMap {
     this.vRam = new Uint8Array(0xA000 - 0x8000)
     this.workingRam = new Uint8Array(0xE000 - 0xC000)
     this.ioRam = new Uint8Array(0xFF80 - 0xFF00)
-    this.zeroPageRam = new Uint8Array(0xFFFF - 0xFF80)
+    this.zeroPageRam = new Uint8Array(0x10000 - 0xFF80)
   }
 
   public readByte(addr: number): number {
