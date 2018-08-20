@@ -2,7 +2,7 @@ import { flagsToNum } from './flags-to-num'
 import { Input } from './input'
 import { toHex } from './math'
 
-const BIT_DIRECTION_BUTTONS = 0b00010000
+const BIT_DIRECTION_BUTTONS = 0b00100000
 const BIT_STANDARD_BUTTONS = 0b00010000
 
 const ADDR_BOOTING_FLAG = 0xFF50
