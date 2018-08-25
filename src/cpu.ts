@@ -197,10 +197,10 @@ export class Cpu {
   }
 
   private inc(val: number): number {
-    const result = val + 1
+    const result = (val + 1) & 0xFF
     const z = result === 0
     const n = 0
-    const h = val + 1 > 0xF
+    const h = result > 0xF
     const c = this.f & FLAG_CARRY
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
     return result
