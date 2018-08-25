@@ -2,19 +2,27 @@ import { Cpu } from './cpu'
 import { Input } from './input'
 import { MemoryMap } from './memory-map'
 
-const getRegisters = (cpu: Cpu) => ({ af: cpu.af, bc: cpu.bc, de: cpu.de, hl: cpu.hl, sp: cpu.sp, pc: cpu.pc })
-const DEFAULT_REGISTERS = { af: 0, bc: 0, de: 0, hl: 0, sp: 0, pc: 0 }
+type ReadMemoryFunc = (addr: number) => number
+type WriteMemoryFunc = (addr: number, value: number) => void
 
 describe('CPU', () => {
   let bootByteView: Uint8Array
   let cpu: Cpu
   let mm: MemoryMap
+  let readByteSpy: jest.SpyInstance<ReadMemoryFunc>
+  let readWordSpy: jest.SpyInstance<ReadMemoryFunc>
+  let writeByteSpy: jest.SpyInstance<WriteMemoryFunc>
+  let writeWordSpy: jest.SpyInstance<WriteMemoryFunc>
   beforeEach(() => {
     const boot = new ArrayBuffer(0x100)
     bootByteView = new Uint8Array(boot)
     const cart = new ArrayBuffer(0x4000)
     const input = new Input()
     mm = new MemoryMap(boot, cart, input)
+    readByteSpy = jest.spyOn(mm, 'readByte')
+    readWordSpy = jest.spyOn(mm, 'readWord')
+    writeByteSpy = jest.spyOn(mm, 'writeByte')
+    writeWordSpy = jest.spyOn(mm, 'writeWord')
     cpu = new Cpu(mm)
   })
   afterEach(() => {
@@ -80,16 +88,54 @@ describe('CPU', () => {
     })
   })
   describe('Operations', () => {
-    test('0x00 NOP', () => {
+    const getRegisters = (c: Cpu) => ({ a: c.a, f: c.f, fz: c.fz, fn: c.fn, fh: c.fh, fc: c.fc, af: c.af, b: c.b, c: c.c, bc: c.bc, d: c.d, e: c.e, de: c.de, h: c.h, l: c.l, hl: c.hl, sp: c.sp, pc: c.pc })
+    const LOAD_ADDR = 0xC000
+    test('0x00 - NOP', () => {
       cpu.tick()
-      expect(getRegisters(cpu)).toEqual({ ...DEFAULT_REGISTERS, pc: 1 })
+      expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001 }))
     })
-    test('0x01 LD BC,d16', () => {
+    test('0x01 - LD BC,d16', () => {
       bootByteView[0] = 0x01
-      bootByteView[1] = 0xFF
-      bootByteView[2] = 0xEE
+      bootByteView[1] = 0xEF
+      bootByteView[2] = 0xCD
       cpu.tick()
-      expect(getRegisters(cpu)).toEqual({ ...DEFAULT_REGISTERS, pc: 3, bc: 0xEEFF })
+      expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0003, bc: 0xCDEF }))
+    })
+    test('0x02 - LD (BC),A', () => {
+      bootByteView[0] = 0x02
+      cpu.a = 0xEF
+      cpu.bc = LOAD_ADDR
+      cpu.tick()
+      expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, a: 0xEF, bc: LOAD_ADDR }))
+      expect(mm.readByte(LOAD_ADDR)).toBe(0xEF)
+    })
+    test('0x03 - INC BC', () => {
+      bootByteView[0] = 0x03
+      cpu.tick()
+      expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, bc: 0x0001 }))
+    })
+    describe('0x04 - INC B', () => {
+      beforeEach(() => bootByteView[0] = 0x04)
+      test('Flags: none', () => {
+        cpu.tick()
+        expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, b: 0x01, fz: false, fn: false, fh: false, fc: false }))
+      })
+      test('Flags: half carry', () => {
+        cpu.b = 0x0F
+        cpu.tick()
+        expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, b: 0x10, fz: false, fn: false, fh: true, fc: false }))
+      })
+      test('Flags: zero', () => {
+        cpu.b = 0xFF
+        cpu.tick()
+        expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, b: 0x00, fz: true, fn: false, fh: false, fc: false }))
+      })
+    })
+    test('0x05 - DEC B', () => {
+      bootByteView[0] = 0x05
+      cpu.b = 0xEF
+      cpu.tick()
+      expect(getRegisters(cpu)).toEqual(expect.objectContaining({ pc: 0x0001, b: 0xEE }))
     })
   })
 })
