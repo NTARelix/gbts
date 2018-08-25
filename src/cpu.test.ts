@@ -2,20 +2,25 @@ import { Cpu } from './cpu'
 import { Input } from './input'
 import { MemoryMap } from './memory-map'
 
+const getRegisters = (cpu: Cpu) => ({ af: cpu.af, bc: cpu.bc, de: cpu.de, hl: cpu.hl, sp: cpu.sp, pc: cpu.pc })
+const DEFAULT_REGISTERS = { af: 0, bc: 0, de: 0, hl: 0, sp: 0, pc: 0 }
+
 describe('CPU', () => {
-  let cartView: Uint8Array
+  let bootByteView: Uint8Array
   let cpu: Cpu
+  let mm: MemoryMap
   beforeEach(() => {
     const boot = new ArrayBuffer(0x100)
+    bootByteView = new Uint8Array(boot)
     const cart = new ArrayBuffer(0x4000)
-    cartView = new Uint8Array(cart)
     const input = new Input()
-    const mm = new MemoryMap(boot, cart, input)
+    mm = new MemoryMap(boot, cart, input)
     cpu = new Cpu(mm)
   })
   afterEach(() => {
-    cartView = null
+    bootByteView = null
     cpu = null
+    mm = null
   })
   describe('Registers', () => {
     const WORD = 0b1111000000001111
@@ -72,6 +77,19 @@ describe('CPU', () => {
       cpu.h = UPPER
       cpu.l = LOWER
       expect(cpu.hl).toBe(WORD)
+    })
+  })
+  describe('Operations', () => {
+    test('0x00 NOP', () => {
+      cpu.tick()
+      expect(getRegisters(cpu)).toEqual({ ...DEFAULT_REGISTERS, pc: 1 })
+    })
+    test('0x01 LD BC,d16', () => {
+      bootByteView[0] = 0x01
+      bootByteView[1] = 0xFF
+      bootByteView[2] = 0xEE
+      cpu.tick()
+      expect(getRegisters(cpu)).toEqual({ ...DEFAULT_REGISTERS, pc: 3, bc: 0xEEFF })
     })
   })
 })
