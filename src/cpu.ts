@@ -106,7 +106,7 @@ export class Cpu {
 
   private add_hl(val: number): number {
     const result = this.hl + val
-    const z = result === 0
+    const z = this.f & FLAG_ZERO
     const n = 0
     const h = (((this.a & 0xFFF) + (val & 0xFFF)) > 0xFFF)
     const c = result > 0xFFFF
