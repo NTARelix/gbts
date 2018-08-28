@@ -299,11 +299,12 @@ export class Cpu {
   }
 
   private rlca(): void {
-    this.a = (this.a << 1) + (this.a >> 7)
-    const z = this.a === 0
+    const rotation = (this.a << 1) + (this.a >> 7)
+    const z = 0
     const n = 0
     const h = 0
-    const c = this.a > 0xFF
+    const c = rotation > 0xFF
+    this.a = rotation
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
   }
 
