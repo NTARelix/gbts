@@ -108,7 +108,7 @@ export class Cpu {
     const result = this.hl + val
     const z = this.f & FLAG_ZERO
     const n = 0
-    const h = (((this.a & 0xFFF) + (val & 0xFFF)) > 0xFFF)
+    const h = (((this.hl & 0xFFF) + (val & 0xFFF)) > 0xFFF)
     const c = result > 0xFFFF
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
     return result
