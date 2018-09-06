@@ -261,9 +261,9 @@ export class Cpu {
 
   private daa(): void {
     let corr = 0
-    corr |= this.f & FLAG_HALF_CARRY ? 0x06 : 0x00
-    corr |= this.f & FLAG_CARRY ? 0x60 : 0x00
-    if (this.f & FLAG_SUBTRACT) {
+    corr |= this.fh ? 0x06 : 0x00
+    corr |= this.fc ? 0x60 : 0x00
+    if (this.fn) {
       this.a -= corr
     } else {
       corr |= (this.a & 0x0F) > 0x09 ? 0x06 : 0x00
@@ -271,7 +271,7 @@ export class Cpu {
       this.a += corr
     }
     const z = this.a === 0
-    const n = this.f & FLAG_SUBTRACT
+    const n = this.fn
     const h = 0
     const c = (corr & 0x60) !== 0
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
