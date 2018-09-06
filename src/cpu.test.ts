@@ -45,21 +45,17 @@ const dynamicRegisterMutator = (cpu: Cpu, registerName: string, newValue: number
 }
 
 describe('CPU', () => {
-  let bootByteView: Uint8Array
   let cartByteView: Uint8Array
   let cpu: Cpu
   let mm: MemoryMap
   beforeEach(() => {
-    const boot = new ArrayBuffer(0x100)
-    bootByteView = new Uint8Array(boot)
     const cart = new ArrayBuffer(0x4000)
     cartByteView = new Uint8Array(cart)
     const input = new Input()
-    mm = new MemoryMap(boot, cart, input)
+    mm = new MemoryMap(cart, input)
     cpu = new Cpu(mm)
   })
   afterEach(() => {
-    bootByteView = null
     cartByteView = null
     cpu = null
     mm = null
@@ -135,9 +131,9 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d16`, () => {
-          bootByteView[0] = opcode
-          bootByteView[1] = 0xEF
-          bootByteView[2] = 0xCD
+          cartByteView[0] = opcode
+          cartByteView[1] = 0xEF
+          cartByteView[2] = 0xCD
           cpu.tick()
           expect(cpu.pc).toBe(3)
           expect(dynamicRegisterAccessor(cpu, register)).toBe(0xCDEF)
@@ -156,8 +152,8 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d8`, () => {
-          bootByteView[0] = opcode
-          bootByteView[1] = 0xEF
+          cartByteView[0] = opcode
+          cartByteView[1] = 0xEF
           cpu.tick()
           expect(cpu.pc).toBe(2)
           expect(dynamicRegisterAccessor(cpu, register)).toBe(0xEF)
@@ -178,7 +174,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, target, source }) => {
         test(`${toHex(opcode, 2, true)} - LD (${target.toUpperCase()}${opcode === 0x22 ? '+' : opcode === 0x32 ? '-' : ''}),${source.toUpperCase()}`, () => {
-          bootByteView[0] = opcode
+          cartByteView[0] = opcode
           dynamicRegisterMutator(cpu, target, 0xC000)
           dynamicRegisterMutator(cpu, source, 0xEF)
           cpu.tick()
@@ -189,23 +185,23 @@ describe('CPU', () => {
         })
       })
       test('0x08 - LD (a16),SP', () => {
-        bootByteView[0] = 0x08
-        bootByteView[1] = 0x00
-        bootByteView[2] = 0xC0
+        cartByteView[0] = 0x08
+        cartByteView[1] = 0x00
+        cartByteView[2] = 0xC0
         cpu.sp = 0xCDEF
         cpu.tick()
         expect(cpu.pc).toBe(3)
         expect(mm.readWord(0xC000)).toBe(0xCDEF)
       })
       test('0x74 - LD (HL),H', () => {
-        bootByteView[0] = 0x74
+        cartByteView[0] = 0x74
         cpu.hl = 0xC002
         cpu.tick()
         expect(cpu.pc).toBe(1)
         expect(mm.readByte(0xC002)).toBe(0xC0)
       })
       test('0x75 - LD (HL),L', () => {
-        bootByteView[0] = 0x75
+        cartByteView[0] = 0x75
         cpu.hl = 0xC002
         cpu.tick()
         expect(cpu.pc).toBe(1)
@@ -221,7 +217,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         test(`${toHex(opcode, 2, true)} - INC ${register.toUpperCase()}`, () => {
-          bootByteView[0] = opcode
+          cartByteView[0] = opcode
           cpu.tick()
           expect(cpu.pc).toBe(1)
           expect(dynamicRegisterAccessor(cpu, register)).toBe(1)
@@ -240,7 +236,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - INC ${register.toUpperCase()}`, () => {
-          beforeEach(() => bootByteView[0] = opcode)
+          beforeEach(() => cartByteView[0] = opcode)
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
@@ -292,7 +288,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - DEC ${register.toUpperCase()}`, () => {
-          beforeEach(() => bootByteView[0] = opcode)
+          beforeEach(() => cartByteView[0] = opcode)
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
@@ -337,7 +333,7 @@ describe('CPU', () => {
     })
     describe('Rotates', () => {
       describe('0x07 - RLCA', () => {
-        beforeEach(() => bootByteView[0] = 0x07)
+        beforeEach(() => cartByteView[0] = 0x07)
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -358,7 +354,7 @@ describe('CPU', () => {
         })
       })
       describe('0x0F - RRCA', () => {
-        beforeEach(() => bootByteView[0] = 0x0F)
+        beforeEach(() => cartByteView[0] = 0x0F)
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -379,7 +375,7 @@ describe('CPU', () => {
         })
       })
       describe('0x17 - RLA', () => {
-        beforeEach(() => bootByteView[0] = 0x17)
+        beforeEach(() => cartByteView[0] = 0x17)
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -406,7 +402,7 @@ describe('CPU', () => {
         })
       })
       describe('0x1F - RRA', () => {
-        beforeEach(() => bootByteView[0] = 0x1F)
+        beforeEach(() => cartByteView[0] = 0x1F)
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -442,7 +438,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - ADD HL,${register.toUpperCase()}`, () => {
-          beforeEach(() => bootByteView[0] = opcode)
+          beforeEach(() => cartByteView[0] = opcode)
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
@@ -498,7 +494,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, target, source }) => {
         test(`${toHex(opcode, 2, true)} - LD ${target.toUpperCase()},(${source.toUpperCase()})`, () => {
-          bootByteView[0] = opcode
+          cartByteView[0] = opcode
           dynamicRegisterMutator(cpu, source, 0xC000)
           mm.writeByte(dynamicRegisterAccessor(cpu, source), 0xEF)
           cpu.tick()
@@ -516,7 +512,7 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         test(`${toHex(opcode, 2, true)} - DEC ${register.toUpperCase()}`, () => {
-          bootByteView[0] = opcode
+          cartByteView[0] = opcode
           dynamicRegisterMutator(cpu, register, 2)
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -525,7 +521,7 @@ describe('CPU', () => {
       })
     })
     test('0x10 - STOP', () => {
-      bootByteView[0] = 0x10
+      cartByteView[0] = 0x10
       cpu.tick()
       expect(cpu.pc).toBe(2)
       cpu.tick()

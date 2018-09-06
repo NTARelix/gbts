@@ -31,16 +31,15 @@ export class Cpu {
     this.stopped = false
     this.interruptEnabled = false
     this.totalCycles = 0
-    this.reset()
   }
 
   public reset(): void {
-    this.af = 0
-    this.bc = 0
-    this.de = 0
-    this.hl = 0
-    this.sp = 0
-    this.pc = 0
+    this.af = 0x01B0
+    this.bc = 0x0013
+    this.de = 0x00D8
+    this.hl = 0x014D
+    this.sp = 0xFFFE
+    this.pc = 0x0100
   }
 
   public get a(): number { return this.byteView[1] }

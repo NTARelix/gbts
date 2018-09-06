@@ -4,11 +4,7 @@ import { flagsToNum, toHex } from './math'
 const BIT_DIRECTION_BUTTONS = 0b00100000
 const BIT_STANDARD_BUTTONS = 0b00010000
 
-const ADDR_BOOTING_FLAG = 0xFF50
-const FLAG_IS_NOT_BOOTING = 0b00000001
-
 export class MemoryMap {
-  private readonly bootData: Uint8Array
   private readonly cartData: Uint8Array
   private readonly input: Input
   private readonly vRam: Uint8Array
@@ -16,8 +12,7 @@ export class MemoryMap {
   private readonly ioRam: Uint8Array
   private readonly zeroPageRam: Uint8Array
 
-  constructor(boot: ArrayBuffer, cart: ArrayBuffer, input: Input) {
-    this.bootData = new Uint8Array(boot)
+  constructor(cart: ArrayBuffer, input: Input) {
     this.cartData = new Uint8Array(cart)
     this.input = input
     this.vRam = new Uint8Array(0xA000 - 0x8000)
@@ -29,8 +24,6 @@ export class MemoryMap {
   public readByte(addr: number): number {
     if (addr < 0 || addr > 0xFFFF) {
       throw new Error(`R[${addr}] Address out of bounds`)
-    } else if (this.isBooting() && addr < 0x0100) {
-      return this.bootData[addr]
     } else if (addr >= 0 && addr < 0x4000) {
       // ROM0
       return this.cartData[addr]
@@ -123,14 +116,41 @@ export class MemoryMap {
     this.writeByte(addr + 1, high)
   }
 
-  public reset(): void {
+  public reset(useDefaultBootRom: boolean = true): void {
     this.vRam.fill(0)
     this.workingRam.fill(0)
     this.ioRam.fill(0)
     this.zeroPageRam.fill(0)
-  }
-
-  private isBooting(): boolean {
-    return !(this.ioRam[ADDR_BOOTING_FLAG - 0xFF00] & FLAG_IS_NOT_BOOTING)
+    this.ioRam[0x05] = 0x00
+    this.ioRam[0x06] = 0x00
+    this.ioRam[0x07] = 0x00
+    this.ioRam[0x10] = 0x80
+    this.ioRam[0x11] = 0xBF
+    this.ioRam[0x12] = 0xF3
+    this.ioRam[0x14] = 0xBF
+    this.ioRam[0x16] = 0x3F
+    this.ioRam[0x17] = 0x00
+    this.ioRam[0x19] = 0xBF
+    this.ioRam[0x1A] = 0x7F
+    this.ioRam[0x1B] = 0xFF
+    this.ioRam[0x1C] = 0x9F
+    this.ioRam[0x1E] = 0xBF
+    this.ioRam[0x20] = 0xFF
+    this.ioRam[0x21] = 0x00
+    this.ioRam[0x22] = 0x00
+    this.ioRam[0x23] = 0xBF
+    this.ioRam[0x24] = 0x77
+    this.ioRam[0x25] = 0xF3
+    this.ioRam[0x26] = 0xF1
+    this.ioRam[0x40] = 0x91
+    this.ioRam[0x42] = 0x00
+    this.ioRam[0x43] = 0x00
+    this.ioRam[0x45] = 0x00
+    this.ioRam[0x47] = 0xFC
+    this.ioRam[0x48] = 0xFF
+    this.ioRam[0x49] = 0xFF
+    this.ioRam[0x4A] = 0x00
+    this.ioRam[0x4B] = 0x00
+    this.ioRam[0xFF] = 0x00
   }
 }

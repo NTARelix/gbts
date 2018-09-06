@@ -1,9 +1,7 @@
 import { Input } from './input'
 import { MemoryMap } from './memory-map'
 
-const BOOT_VALUES = 1
 const CART_VALUES = 2
-const ADDR_BOOTING_FLAG = 0xFF50
 const ADDR_JOY = 0xFF00
 const JOY_BASE =       0b11000000
 const JOY_TEST_DIR =   0b00100000
@@ -24,34 +22,17 @@ function createBuffer(size: number, mapper: BufferMapper): ArrayBuffer {
 }
 
 describe('MemoryMap', () => {
-  let boot: ArrayBuffer
   let cart: ArrayBuffer
   let input: Input
   let mm: MemoryMap
   beforeEach(() => {
-    boot = createBuffer(0x100, () => BOOT_VALUES)
     cart = createBuffer(0x4000, () => CART_VALUES)
     input = new Input()
-    mm = new MemoryMap(boot, cart, input)
+    mm = new MemoryMap(cart, input)
   })
   afterEach(() => {
-    boot = null
     cart = null
     input = null
-  })
-  test('Boot flag affects read of first 0x100 bytes', () => {
-    mm.writeByte(ADDR_BOOTING_FLAG, 0b00000001)
-    expect(mm.readByte(0x0000)).toBe(CART_VALUES)
-    expect(mm.readByte(0x00FF)).toBe(CART_VALUES)
-    mm.writeByte(ADDR_BOOTING_FLAG, 0b00000000)
-    expect(mm.readByte(0x0000)).toBe(BOOT_VALUES)
-    expect(mm.readByte(0x00FF)).toBe(BOOT_VALUES)
-    mm.writeByte(ADDR_BOOTING_FLAG, 0b11111111)
-    expect(mm.readByte(0x0000)).toBe(CART_VALUES)
-    expect(mm.readByte(0x00FF)).toBe(CART_VALUES)
-    mm.writeByte(ADDR_BOOTING_FLAG, 0b11111110)
-    expect(mm.readByte(0x0000)).toBe(BOOT_VALUES)
-    expect(mm.readByte(0x00FF)).toBe(BOOT_VALUES)
   })
   test('Read-only first ROM bank', () => {
     mm.writeByte(0x0100, CART_VALUES + 1)
