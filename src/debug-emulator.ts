@@ -1,11 +1,6 @@
+import { clearNode } from './dom'
 import { Emulator } from './emulator'
 import { toHex } from './math'
-
-function emptyNode(node: HTMLElement): void {
-  while (node.firstChild) {
-    node.removeChild(node.firstChild)
-  }
-}
 
 export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void {
   const memoryView = document.createElement('div')
@@ -109,7 +104,7 @@ export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void
   actionContainer.appendChild(resumeButton)
   actionContainer.appendChild(breakAddr)
   actionContainer.appendChild(breakOpcode)
-  emptyNode(parentNode)
+  clearNode(parentNode)
   parentNode.appendChild(memoryView)
   parentNode.appendChild(registerView)
   parentNode.appendChild(actionContainer)
