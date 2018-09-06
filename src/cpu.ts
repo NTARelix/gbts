@@ -329,12 +329,12 @@ export class Cpu {
   }
 
   private rra(): void {
-    const flagC = this.f & FLAG_CARRY
-    this.a = (this.a << 1) + (flagC << 7) + ((this.a & 1) << 8)
-    const z = this.a === 0
+    const value = (this.a >> 1) + (+this.fc << 7) + ((this.a & 1) << 8)
+    const z = 0
     const n = 0
     const h = 0
-    const c = this.a > 0xFF
+    const c = value > 0xFF
+    this.a = value
     this.f = flagsToNum(z, n, h, c, 0, 0, 0, 0)
   }
 
