@@ -1,6 +1,5 @@
-import { flagsToNum } from './flags-to-num'
 import { Input } from './input'
-import { toHex } from './math'
+import { flagsToNum, toHex } from './math'
 
 const BIT_DIRECTION_BUTTONS = 0b00100000
 const BIT_STANDARD_BUTTONS = 0b00010000

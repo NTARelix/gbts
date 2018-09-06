@@ -1,6 +1,5 @@
-import { flagsToNum } from './flags-to-num'
 import { IOperationMap } from './ioperation-map'
-import { toHex, toSigned } from './math'
+import { flagsToNum, toHex, toSigned } from './math'
 import { MemoryMap } from './memory-map'
 
 const FLAG_ZERO =         0b10000000
