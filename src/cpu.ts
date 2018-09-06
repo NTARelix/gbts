@@ -17,9 +17,9 @@ export class Cpu {
   private readonly byteView: Uint8Array
   private readonly wordView: Uint16Array
   private readonly operations: IOperationMap
-  private isHalted: boolean
-  private isStopped: boolean
-  private isInterruptEnabled: boolean
+  private halted: boolean
+  private stopped: boolean
+  private interruptEnabled: boolean
   private totalCycles: number
 
   constructor(memoryMap: MemoryMap) {
@@ -28,9 +28,9 @@ export class Cpu {
     this.byteView = new Uint8Array(registerBuffer)
     this.wordView = new Uint16Array(registerBuffer)
     this.operations = this.generateOperationMap()
-    this.isHalted = false
-    this.isStopped = false
-    this.isInterruptEnabled = false
+    this.halted = false
+    this.stopped = false
+    this.interruptEnabled = false
     this.totalCycles = 0
     this.reset()
   }
@@ -85,6 +85,7 @@ export class Cpu {
   public set fc(set: boolean) { !!set ? this.f |= FLAG_CARRY : this.f &= FLAG_CARRY_N }
 
   public tick(isExtension = false): void {
+    if (this.isStopped()) { return }
     const opcode = this.memoryMap.readByte(this.pc)
     const extOffset = isExtension ? 0x100 : 0
     const operation = this.operations[opcode + extOffset]
@@ -92,6 +93,14 @@ export class Cpu {
     this.pc += 1
     this.totalCycles += operation.cycles
     operation.action()
+  }
+
+  public isHalted(): boolean {
+    return this.halted
+  }
+
+  public isStopped(): boolean {
+    return this.stopped
   }
 
   private add_a(val: number): number {
@@ -468,7 +477,12 @@ export class Cpu {
 
   private reti(): void {
     this.pc = this.popWord()
-    this.isInterruptEnabled = true
+    this.interruptEnabled = true
+  }
+
+  private stop(): void {
+    this.stopped = true
+    this.pc += 1
   }
 
   private generateOperationMap(): IOperationMap {
@@ -490,7 +504,7 @@ export class Cpu {
       0x00D: { cycles: 4, action: () => this.c = this.dec(this.c) },
       0x00E: { cycles: 4, action: () => this.c = this.loadImmediateByte() },
       0x00F: { cycles: 4, action: () => this.rrca() },
-      0x010: { cycles: 4, action: () => this.isStopped = true },
+      0x010: { cycles: 4, action: () => this.stop() },
       0x011: { cycles: 12, action: () => this.de = this.loadImmediateWord() },
       0x012: { cycles: 8, action: () => this.memoryMap.writeByte(this.de, this.a) },
       0x013: { cycles: 8, action: () => this.de += 1 },
@@ -592,7 +606,7 @@ export class Cpu {
       0x073: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.e) },
       0x074: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.h) },
       0x075: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.l) },
-      0x076: { cycles: 4, action: () => this.isHalted = true },
+      0x076: { cycles: 4, action: () => this.halted = true },
       0x077: { cycles: 8, action: () => this.memoryMap.writeByte(this.hl, this.a) },
       0x078: { cycles: 4, action: () => this.a = this.b },
       0x079: { cycles: 4, action: () => this.a = this.c },
@@ -717,7 +731,7 @@ export class Cpu {
       0x0F0: { cycles: 12, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.loadImmediateByte()) },
       0x0F1: { cycles: 12, action: () => this.af = this.popWord() },
       0x0F2: { cycles: 8, action: () => this.a = this.memoryMap.readByte(0xFF00 + this.c) },
-      0x0F3: { cycles: 4, action: () => this.isInterruptEnabled = false },
+      0x0F3: { cycles: 4, action: () => this.interruptEnabled = false },
       0x0F4: null,
       0x0F5: { cycles: 16, action: () => this.pushWord(this.af) },
       0x0F6: { cycles: 8, action: () => this.a = this.or_a(this.loadImmediateByte()) },
@@ -725,7 +739,7 @@ export class Cpu {
       0x0F8: { cycles: 12, action: () => this.hl = this.sp + toSigned(this.loadImmediateByte()) },
       0x0F9: { cycles: 8, action: () => this.sp = this.hl },
       0x0FA: { cycles: 16, action: () => this.ld_hl_sp_n() },
-      0x0FB: { cycles: 4, action: () => this.isInterruptEnabled = true },
+      0x0FB: { cycles: 4, action: () => this.interruptEnabled = true },
       0x0FC: null,
       0x0FD: null,
       0x0FE: { cycles: 8, action: () => this.a = this.cp_a(this.loadImmediateByte()) },
