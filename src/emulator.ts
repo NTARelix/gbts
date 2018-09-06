@@ -15,12 +15,4 @@ export class Emulator {
   public tick(): void {
     this.cpu.tick()
   }
-
-  public saveState(): void {
-    throw new Error('Not yet implemented')
-  }
-
-  public loadState(): void {
-    throw new Error('Not yet implemented')
-  }
 }
