@@ -11,6 +11,7 @@ export function createBinaryFileInput(label: string, extensions: string, renderN
     const labelTextNode = document.createTextNode(`${label}: `)
     const inputNode = document.createElement('input')
     inputNode.type = 'file'
+    inputNode.accept = extensions
     inputNode.onchange = () => {
       const file = inputNode.files[0]
       if (!file) { return }
