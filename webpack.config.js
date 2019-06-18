@@ -1,9 +1,13 @@
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const path = require('path')
-const webpack = require('webpack')
 
-module.exports = {
-  devtool: 'source-map',
+module.exports = (env, { mode }) => ({
+  devServer: {
+    contentBase: false,
+    stats: 'minimal',
+  },
+  devtool: mode === 'production' ? '' : 'source-map',
   module: {
     rules: [
       {
@@ -13,10 +17,16 @@ module.exports = {
       },
     ],
   },
+  output: {
+    filename: mode === 'production' ? '[chunkhash].js' : '[name].js',
+    chunkFilename: mode === 'production' ? '[chunkhash].js' : '[name].js',
+  },
   plugins: [
-    new HtmlWebpackPlugin()
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin(),
   ],
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
   },
-}
+  stats: 'verbose',
+})
