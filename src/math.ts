@@ -16,5 +16,5 @@ export function toHex(num: number, size: number = 1, prefix: boolean = true): st
 }
 
 export function toSigned(unsignedInt: number): number {
-  return -(~unsignedInt & 0xFF) - 1
+  return unsignedInt <= 127 ? unsignedInt : -(~unsignedInt & 0xFF) - 1
 }

@@ -39,4 +39,18 @@ describe('math', () => {
       expect(toHex(255, 20)).toBe('0x000000000000000000FF')
     })
   })
+  describe('toSigned', () => {
+    test('Positive boundaries calculated accurately', () => {
+      expect(toSigned(0b00000000)).toBe(0)
+      expect(toSigned(0b00000001)).toBe(1)
+      expect(toSigned(0b01000000)).toBe(64)
+      expect(toSigned(0b01111111)).toBe(127)
+    })
+    test('Negative boundaries calculated accurately', () => {
+      expect(toSigned(0b10000000)).toBe(-128)
+      expect(toSigned(0b10000001)).toBe(-127)
+      expect(toSigned(0b11000000)).toBe(-64)
+      expect(toSigned(0b11111111)).toBe(-1)
+    })
+  })
 })
