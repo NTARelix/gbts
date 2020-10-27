@@ -1,4 +1,4 @@
-import { debugEmulator } from './debug-emulator'
+import { renderDebugger } from './debugger'
 import { createBinaryFileInput } from './dom'
 import { Emulator } from './emulator'
 
@@ -7,7 +7,7 @@ async function main(): Promise<void> {
   document.body.appendChild(renderNode)
   const cartData = await createBinaryFileInput('Cartridge', '.gb', renderNode)
   const emulator = new Emulator(cartData)
-  debugEmulator(emulator, renderNode)
+  renderDebugger(emulator, renderNode)
 }
 
 main()

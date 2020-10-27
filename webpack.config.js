@@ -27,7 +27,7 @@ module.exports = (env, { mode }) => ({
     new HtmlWebpackPlugin(),
   ],
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.tsx', '.js'],
   },
   stats: 'verbose',
 })
