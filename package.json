@@ -8,7 +8,7 @@
     "deploy": "gh-pages -d dist",
     "lint": "tslint --project .",
     "start": "webpack-dev-server --hot --mode development",
-    "test": "jest --watch --coverage"
+    "test": "jest --watch"
   },
   "keywords": [],
   "author": "",
