@@ -22,13 +22,16 @@ const VirtualAddressRange = styled.div<VirtualAddressRangeProps>`
 `
 
 export interface MemoryProps {
+  breakpoints: ReadonlySet<number>,
   pc: number,
   memoryWindow: number[],
   offset: number,
+  onAddBreakpoint: (breakpoint: number) => void,
+  onDeleteBreakpoint: (breakpoint: number) => void,
   onRequestNewWindow: (startAddr: number, endAddr: number) => void,
 }
 
-export const Memory: React.FunctionComponent<MemoryProps> = ({ pc, memoryWindow, offset, onRequestNewWindow }) => {
+export const Memory: React.FunctionComponent<MemoryProps> = ({ breakpoints, pc, memoryWindow, offset, onAddBreakpoint, onDeleteBreakpoint, onRequestNewWindow }) => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null)
   function requestNewWindow(): void {
     if (scrollContainerRef.current) {
@@ -66,6 +69,8 @@ export const Memory: React.FunctionComponent<MemoryProps> = ({ pc, memoryWindow,
               key={offset + index}
               addr={offset + index}
               isActive={pc === offset + index}
+              isBreakpoint={breakpoints.has(offset + index)}
+              onClick={() => breakpoints.has(offset + index) ? onDeleteBreakpoint(offset + index) : onAddBreakpoint(offset + index)}
             >
               {value}
             </MemoryRow>

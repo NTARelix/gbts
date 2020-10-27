@@ -4,6 +4,7 @@ import { Emulator } from '../emulator'
 import { Actions } from './actions'
 import { Cpu } from './cpu'
 import { Memory } from './memory'
+import { useBreakpoints } from './use-breakpoints'
 
 function calculateMemoryWindow(emulator: Emulator, offset: number, windowSize: number): number[] {
   return new Array(windowSize)
@@ -12,6 +13,7 @@ function calculateMemoryWindow(emulator: Emulator, offset: number, windowSize: n
 }
 
 const MEMORY_WINDOW_SIZE = 20
+const BREAKPOINT_STORAGE_KEY = 'BREAKPOINT_STORAGE'
 
 const OuterContainer = styled.div`
   width: 100%;
@@ -65,6 +67,7 @@ export const Debugger: FunctionComponent<DebuggerProps> = ({ emulator }) => {
   const [pc, setPc] = useState(emulator.cpu.pc)
   const [memoryOffset, setMemoryOffset] = useState(Math.max(0, emulator.cpu.pc - 4))
   const [memoryWindow, setMemoryWindow] = useState(calculateMemoryWindow(emulator, memoryOffset, MEMORY_WINDOW_SIZE))
+  const [breakpoints, addBreakpoint, deleteBreakpoint] = useBreakpoints(BREAKPOINT_STORAGE_KEY)
   function updateState(): void {
     setAf(emulator.cpu.af)
     setBc(emulator.cpu.bc)
@@ -74,7 +77,11 @@ export const Debugger: FunctionComponent<DebuggerProps> = ({ emulator }) => {
     setPc(emulator.cpu.pc)
   }
   function resume(): void {
-    // TODO: implement breakpoints
+    emulator.tick()
+    while (!breakpoints.has(emulator.cpu.pc)) {
+      emulator.tick()
+    }
+    updateState()
   }
   function step(): void {
     emulator.tick()
@@ -91,9 +98,12 @@ export const Debugger: FunctionComponent<DebuggerProps> = ({ emulator }) => {
       </CanvasContainer>
       <MemoryContainer>
         <Memory
+          breakpoints={breakpoints}
           pc={pc}
           memoryWindow={memoryWindow}
           offset={memoryOffset}
+          onAddBreakpoint={addBreakpoint}
+          onDeleteBreakpoint={deleteBreakpoint}
           onRequestNewWindow={requestNewMemoryWindow}
         />
       </MemoryContainer>

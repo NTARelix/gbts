@@ -8,6 +8,6 @@ export interface ActionsProps {
 export const Actions: FunctionComponent<ActionsProps> = ({ onStep, onResume }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <button onClick={onStep}>Step</button>
-    <button onClick={onResume} disabled>Resume (TODO: add breakpoints)</button>
+    <button onClick={onResume}>Resume</button>
   </div>
 )
