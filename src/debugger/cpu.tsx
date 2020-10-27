@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { FunctionComponent } from 'react'
 import { toHex } from '../math'
 
 export interface CpuProps {
@@ -10,7 +10,7 @@ export interface CpuProps {
   pc: number,
 }
 
-export const Cpu: React.FunctionComponent<CpuProps> = ({ af, bc, de, hl, sp, pc }) => (
+export const Cpu: FunctionComponent<CpuProps> = ({ af, bc, de, hl, sp, pc }) => (
   <table>
     <thead>
       <tr>

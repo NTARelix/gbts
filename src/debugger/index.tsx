@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import { render } from 'react-dom'
 import { Emulator } from '../emulator'
 import { Debugger } from './debugger'

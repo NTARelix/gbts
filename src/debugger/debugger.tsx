@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import styled from 'styled-components'
 import { Emulator } from '../emulator'
 import { Actions } from './actions'
@@ -56,15 +56,15 @@ export interface DebuggerProps {
   emulator: Emulator,
 }
 
-export const Debugger: React.FunctionComponent<DebuggerProps> = ({ emulator }) => {
-  const [af, setAf] = React.useState(emulator.cpu.af)
-  const [bc, setBc] = React.useState(emulator.cpu.bc)
-  const [de, setDe] = React.useState(emulator.cpu.de)
-  const [hl, setHl] = React.useState(emulator.cpu.hl)
-  const [sp, setSp] = React.useState(emulator.cpu.sp)
-  const [pc, setPc] = React.useState(emulator.cpu.pc)
-  const [memoryOffset, setMemoryOffset] = React.useState(Math.max(0, emulator.cpu.pc - 4))
-  const [memoryWindow, setMemoryWindow] = React.useState(calculateMemoryWindow(emulator, memoryOffset, MEMORY_WINDOW_SIZE))
+export const Debugger: FunctionComponent<DebuggerProps> = ({ emulator }) => {
+  const [af, setAf] = useState(emulator.cpu.af)
+  const [bc, setBc] = useState(emulator.cpu.bc)
+  const [de, setDe] = useState(emulator.cpu.de)
+  const [hl, setHl] = useState(emulator.cpu.hl)
+  const [sp, setSp] = useState(emulator.cpu.sp)
+  const [pc, setPc] = useState(emulator.cpu.pc)
+  const [memoryOffset, setMemoryOffset] = useState(Math.max(0, emulator.cpu.pc - 4))
+  const [memoryWindow, setMemoryWindow] = useState(calculateMemoryWindow(emulator, memoryOffset, MEMORY_WINDOW_SIZE))
   function updateState(): void {
     setAf(emulator.cpu.af)
     setBc(emulator.cpu.bc)

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { FunctionComponent } from 'react'
 import styled from 'styled-components'
 import { toHex } from '../math'
 
@@ -15,6 +15,6 @@ export interface MemoryRowProps {
   isActive?: boolean,
 }
 
-export const MemoryRow: React.FunctionComponent<MemoryRowProps> = ({ children, addr, isActive = false }) => (
+export const MemoryRow: FunctionComponent<MemoryRowProps> = ({ children, addr, isActive = false }) => (
   <Root isActive={isActive}>{toHex(addr, 4)} {toHex(children, 4)}</Root>
 )
