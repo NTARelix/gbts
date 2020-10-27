@@ -1,10 +1,3 @@
-export function clearNode(node: HTMLElement): void {
-  if (!node) { return }
-  while (node.firstChild) {
-    node.removeChild(node.firstChild)
-  }
-}
-
 export function createBinaryFileInput(label: string, extensions: string, renderNode: HTMLElement): Promise<ArrayBuffer> {
   return new Promise((resolve) => {
     const labelNode = document.createElement('label')
