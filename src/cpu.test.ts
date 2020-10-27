@@ -3,10 +3,6 @@ import { Input } from './input'
 import { toHex } from './math'
 import { MemoryMap } from './memory-map'
 
-type ReadMemoryFunc = (addr: number) => number
-type WriteMemoryFunc = (addr: number, value: number) => void
-
-const getRegisters = (c: Cpu) => ({ a: c.a, f: c.f, fz: c.fz, fn: c.fn, fh: c.fh, fc: c.fc, af: c.af, b: c.b, c: c.c, bc: c.bc, d: c.d, e: c.e, de: c.de, h: c.h, l: c.l, hl: c.hl, sp: c.sp, pc: c.pc })
 const dynamicRegisterAccessor = (cpu: Cpu, registerName: string): number => {
   switch (registerName) {
     case 'a': return cpu.a

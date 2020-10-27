@@ -1,4 +1,4 @@
-export function clearNode(node: HTMLElement) {
+export function clearNode(node: HTMLElement): void {
   if (!node) { return }
   while (node.firstChild) {
     node.removeChild(node.firstChild)
@@ -12,11 +12,11 @@ export function createBinaryFileInput(label: string, extensions: string, renderN
     const inputNode = document.createElement('input')
     inputNode.type = 'file'
     inputNode.accept = extensions
-    inputNode.onchange = () => {
+    inputNode.onchange = (): void => {
       const file = inputNode.files[0]
       if (!file) { return }
       const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as ArrayBuffer)
+      reader.onload = (): void => resolve(reader.result as ArrayBuffer)
       reader.readAsArrayBuffer(file)
     }
     labelNode.appendChild(labelTextNode)

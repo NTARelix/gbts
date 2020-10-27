@@ -4,6 +4,16 @@ import { toHex } from './math'
 
 export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void {
   const memoryView = document.createElement('div')
+  const registerView = document.createElement('div')
+  const actionContainer = document.createElement('div')
+  const stepButton = document.createElement('button')
+  const resumeButton = document.createElement('button')
+  const breakAddr = document.createElement('input')
+  const breakOpcode = document.createElement('input')
+  actionContainer.appendChild(stepButton)
+  actionContainer.appendChild(resumeButton)
+  actionContainer.appendChild(breakAddr)
+  actionContainer.appendChild(breakOpcode)
   memoryView.innerHTML = `
     <table style="text-align:center">
       <thead>
@@ -30,7 +40,6 @@ export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void
       </tbody>
     </table>
   `
-  const registerView = document.createElement('div')
   registerView.style.position = 'fixed'
   registerView.style.left = '120px'
   registerView.style.top = '10px'
@@ -70,21 +79,18 @@ export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void
       </tbody>
     </table>
   `
-  const actionContainer = document.createElement('div')
   actionContainer.style.position = 'fixed'
   actionContainer.style.left = '250px'
   actionContainer.style.top = '15px'
   actionContainer.style.display = 'flex'
   actionContainer.style.flexDirection = 'column'
-  const stepButton = document.createElement('button')
   stepButton.innerText = 'Step'
-  stepButton.onclick = () => {
+  stepButton.onclick = (): void => {
     emulator.tick()
     debugEmulator(emulator, parentNode)
   }
-  const resumeButton = document.createElement('button')
   resumeButton.innerText = 'Resume'
-  resumeButton.onclick = () => {
+  resumeButton.onclick = (): void => {
     try {
       while (
         emulator.cpu.pc !== parseInt(breakAddr.value, 16) &&
@@ -96,14 +102,8 @@ export function debugEmulator(emulator: Emulator, parentNode: HTMLElement): void
       debugEmulator(emulator, parentNode)
     }
   }
-  const breakAddr = document.createElement('input')
   breakAddr.placeholder = 'Break Address'
-  const breakOpcode = document.createElement('input')
   breakOpcode.placeholder = 'Break Opcode'
-  actionContainer.appendChild(stepButton)
-  actionContainer.appendChild(resumeButton)
-  actionContainer.appendChild(breakAddr)
-  actionContainer.appendChild(breakOpcode)
   clearNode(parentNode)
   parentNode.appendChild(memoryView)
   parentNode.appendChild(registerView)

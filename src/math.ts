@@ -1,4 +1,4 @@
-export function flagsToNum(...bits: any[]): number {
+export function flagsToNum(...bits: (boolean|number)[]): number {
   if (bits.length === 0) {
     return 0
   }
@@ -11,7 +11,7 @@ export function flagsToNum(...bits: any[]): number {
     .reduce((num, bitFlag) => num | bitFlag, 0)
 }
 
-export function toHex(num: number, size: number = 1, prefix: boolean = true): string {
+export function toHex(num: number, size = 1, prefix = true): string {
   return (prefix ? '0x' : '') + num.toString(16).toUpperCase().padStart(size, '0')
 }
 

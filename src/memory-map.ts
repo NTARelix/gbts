@@ -116,7 +116,7 @@ export class MemoryMap {
     this.writeByte(addr + 1, high)
   }
 
-  public reset(useDefaultBootRom: boolean = true): void {
+  public reset(): void {
     this.vRam.fill(0)
     this.workingRam.fill(0)
     this.ioRam.fill(0)
