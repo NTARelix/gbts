@@ -5,6 +5,7 @@ const path = require('path')
 module.exports = (env, { mode }) => ({
   devServer: {
     contentBase: false,
+    hot: true,
     stats: 'minimal',
   },
   devtool: mode === 'production' ? '' : 'source-map',

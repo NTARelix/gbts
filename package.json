@@ -7,7 +7,7 @@
     "build": "webpack --mode production",
     "deploy": "gh-pages -d dist",
     "lint": "tslint --project .",
-    "start": "webpack-dev-server --hot --mode development",
+    "start": "webpack-dev-server --mode development",
     "test": "jest --watch"
   },
   "keywords": [],
