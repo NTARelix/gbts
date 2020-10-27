@@ -13,7 +13,7 @@ export function createBinaryFileInput(label: string, extensions: string, renderN
     inputNode.type = 'file'
     inputNode.accept = extensions
     inputNode.onchange = (): void => {
-      const file = inputNode.files[0]
+      const file = inputNode?.files?.[0]
       if (!file) { return }
       const reader = new FileReader()
       reader.onload = (): void => resolve(reader.result as ArrayBuffer)

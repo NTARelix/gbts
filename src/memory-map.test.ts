@@ -30,10 +30,6 @@ describe('MemoryMap', () => {
     input = new Input()
     mm = new MemoryMap(cart, input)
   })
-  afterEach(() => {
-    cart = null
-    input = null
-  })
   test('Read-only first ROM bank', () => {
     mm.writeByte(0x0100, CART_VALUES + 1)
     expect(mm.readByte(0x0100)).toBe(CART_VALUES)

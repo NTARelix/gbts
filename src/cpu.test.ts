@@ -19,6 +19,7 @@ const dynamicRegisterAccessor = (cpu: Cpu, registerName: string): number => {
     case 'hl': return cpu.hl
     case 'sp': return cpu.sp
     case 'pc': return cpu.pc
+    default: throw new Error(`Invalid register name '${registerName}'`)
   }
 }
 const dynamicRegisterMutator = (cpu: Cpu, registerName: string, newValue: number): number => {
@@ -37,6 +38,7 @@ const dynamicRegisterMutator = (cpu: Cpu, registerName: string, newValue: number
     case 'hl': return cpu.hl = newValue
     case 'sp': return cpu.sp = newValue
     case 'pc': return cpu.pc = newValue
+    default: throw new Error(`Invalid register name '${registerName}'`)
   }
 }
 
@@ -50,11 +52,6 @@ describe('CPU', () => {
     const input = new Input()
     mm = new MemoryMap(cart, input)
     cpu = new Cpu(mm)
-  })
-  afterEach(() => {
-    cartByteView = null
-    cpu = null
-    mm = null
   })
   describe('Registers', () => {
     const WORD = 0b1111000000001111

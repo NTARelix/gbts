@@ -1,5 +1,5 @@
 import { Operation } from './operation'
 
 export interface OperationMap {
-  [name: number]: Operation;
+  [name: number]: Operation | null;
 }

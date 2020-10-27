@@ -66,6 +66,8 @@ export class MemoryMap {
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       return this.zeroPageRam[addr - 0xFF80]
+    } else {
+      throw new Error(`Address '${toHex(addr, 4)}' outside of range [0x0000, 0xFFFF]`)
     }
   }
 
@@ -104,6 +106,8 @@ export class MemoryMap {
     } else if (addr <= 0xFFFF) {
       // Zero-page RAM
       this.zeroPageRam[addr - 0xFF80] = value
+    } else {
+      throw new Error(`Address '${toHex(addr, 4)}' outside of range [0x0000, 0xFFFF]`)
     }
   }
 
