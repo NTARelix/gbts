@@ -29,6 +29,11 @@
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:react/recommended"
       ],
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      },
       "rules": {
         "@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
         "@typescript-eslint/member-delimiter-style": [
