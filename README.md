@@ -8,7 +8,7 @@ I've been following a variety of resources in the following repo to get what I c
 Run the app from https://ntarelix.github.io/gbts/ or clone the repo and run the following commands:
 
 1. `npm ci && npm start`
-2. Open http://localhost:8080 in browser
+2. Open http://localhost:1234 in browser
 
 ## Goals
 
