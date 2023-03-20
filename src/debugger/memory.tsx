@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { MemoryRow } from './memory-row'
 
@@ -32,7 +32,7 @@ export interface MemoryProps {
 }
 
 export const Memory: React.FunctionComponent<MemoryProps> = ({ breakpoints, pc, memoryWindow, offset, onAddBreakpoint, onDeleteBreakpoint, onRequestNewWindow }) => {
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   function requestNewWindow(): void {
     if (scrollContainerRef.current) {
       const topAddr = Math.floor(scrollContainerRef.current.scrollTop / PIXELS_PER_ROW)
@@ -40,18 +40,18 @@ export const Memory: React.FunctionComponent<MemoryProps> = ({ breakpoints, pc, 
       onRequestNewWindow(topAddr, bottomAddr)
     }
   }
-  React.useEffect(() => {
+  useEffect(() => {
     // Update virtual scrolling window when the client size changes is resized
     window.addEventListener('resize', requestNewWindow)
     return () => window.removeEventListener('resize', requestNewWindow)
   }, [])
-  React.useEffect(() => {
+  useEffect(() => {
     // Initial scroll to PC
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = offset * PIXELS_PER_ROW
     }
   }, [scrollContainerRef.current])
-  React.useEffect(() => {
+  useEffect(() => {
     // Focus on PC
     if (!scrollContainerRef.current) return
     if (pc < offset + 1) {

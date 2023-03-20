@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from 'react'
+import { FunctionComponent, useState } from 'react'
 import styled from 'styled-components'
 import { Emulator } from '../emulator'
 import { Actions } from './actions'
