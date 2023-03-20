@@ -1,3 +1,4 @@
+import { describe, expect, test } from '@jest/globals'
 import { flagsToNum, toHex, toSigned } from './math'
 
 describe('math', () => {

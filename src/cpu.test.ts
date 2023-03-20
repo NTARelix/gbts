@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, test } from '@jest/globals'
 import { Cpu } from './cpu'
 import { Input } from './input'
 import { toHex } from './math'
@@ -229,7 +230,9 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - INC ${register.toUpperCase()}`, () => {
-          beforeEach(() => cartByteView[0] = opcode)
+          beforeEach(() => {
+            cartByteView[0] = opcode
+          })
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
@@ -281,7 +284,9 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - DEC ${register.toUpperCase()}`, () => {
-          beforeEach(() => cartByteView[0] = opcode)
+          beforeEach(() => {
+            cartByteView[0] = opcode
+          })
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
@@ -326,7 +331,9 @@ describe('CPU', () => {
     })
     describe('Rotates', () => {
       describe('0x07 - RLCA', () => {
-        beforeEach(() => cartByteView[0] = 0x07)
+        beforeEach(() => {
+          cartByteView[0] = 0x07
+        })
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -347,7 +354,9 @@ describe('CPU', () => {
         })
       })
       describe('0x0F - RRCA', () => {
-        beforeEach(() => cartByteView[0] = 0x0F)
+        beforeEach(() => {
+          cartByteView[0] = 0x0F
+        })
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -368,7 +377,9 @@ describe('CPU', () => {
         })
       })
       describe('0x17 - RLA', () => {
-        beforeEach(() => cartByteView[0] = 0x17)
+        beforeEach(() => {
+          cartByteView[0] = 0x17
+        })
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -395,7 +406,9 @@ describe('CPU', () => {
         })
       })
       describe('0x1F - RRA', () => {
-        beforeEach(() => cartByteView[0] = 0x1F)
+        beforeEach(() => {
+          cartByteView[0] = 0x1F
+        })
         test('PC += 1', () => {
           cpu.tick()
           expect(cpu.pc).toBe(1)
@@ -431,7 +444,9 @@ describe('CPU', () => {
       ]
       ops.forEach(({ opcode, register }) => {
         describe(`${toHex(opcode, 2, true)} - ADD HL,${register.toUpperCase()}`, () => {
-          beforeEach(() => cartByteView[0] = opcode)
+          beforeEach(() => {
+            cartByteView[0] = opcode
+          })
           test('PC += 1', () => {
             cpu.tick()
             expect(cpu.pc).toBe(1)
