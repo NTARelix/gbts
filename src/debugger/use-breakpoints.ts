@@ -3,18 +3,24 @@ import { useEffect, useState } from 'react'
 export type AddBreakpointCallback = (breakpoint: number) => void
 export type DeleteBreakpointCallback = (breakpoint: number) => void
 
+function isBreakpointArray(thing: unknown): thing is number[] {
+  return Array.isArray(thing) && thing.every(
+    item => typeof item === 'number'
+      && Number.isInteger(item)
+      && item >= 0
+      && item <= 0xffff
+  )
+}
+
 function readPersistedBreakpoints(localStorageKey: string): ReadonlySet<number> {
   const persistedBreakpointData = localStorage.getItem(localStorageKey)
-  if (persistedBreakpointData === null) return new Set()
-  const persistedBreakpoints = JSON.parse(persistedBreakpointData)
-  if (!Array.isArray(persistedBreakpoints)) return new Set()
-  const validBreakpoints: number[] = persistedBreakpoints.filter(
-    breakpoint =>
-      Number.isInteger(breakpoint)
-      && breakpoint >= 0
-      && breakpoint <= 0xffff
-  )
-  return new Set(validBreakpoints)
+  if (persistedBreakpointData === null)
+    return new Set()
+  const persistedBreakpoints = JSON.parse(persistedBreakpointData) as unknown
+  if (isBreakpointArray(persistedBreakpoints))
+    return new Set(persistedBreakpoints)
+  else
+    return new Set()
 }
 
 export function useBreakpoints(localStorageKey: string): [ReadonlySet<number>, AddBreakpointCallback, DeleteBreakpointCallback] {

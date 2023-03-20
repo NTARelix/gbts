@@ -9,11 +9,11 @@
       "es2017",
       "es2018"
     ],
-    "module": "ES2015",
+    "module": "Node16",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "es5",
+    "target": "ES2021",
   }
 }
