@@ -1,4 +1,4 @@
-import { renderDebugger } from './debugger'
+import { renderUi } from './ui'
 import { createBinaryFileInput } from './dom'
 import { Emulator } from './emulator'
 
@@ -9,7 +9,7 @@ function main(): void {
   createBinaryFileInput('Cartridge', '.gb', renderNode)
     .then(cartData => {
       const emulator = new Emulator(cartData)
-      renderDebugger(emulator, renderNode)
+      renderUi(emulator, renderNode)
     })
     .catch(err => {
       console.error('Failed to create cartridge input:', err)

@@ -54,11 +54,11 @@ const ActionsContainer = styled.div`
   grid-row-end: 2;
 `
 
-export interface DebuggerProps {
+export interface RootProps {
   emulator: Emulator,
 }
 
-export const Debugger: FunctionComponent<DebuggerProps> = ({ emulator }) => {
+export const Root: FunctionComponent<RootProps> = ({ emulator }) => {
   const [af, setAf] = useState(emulator.cpu.af)
   const [bc, setBc] = useState(emulator.cpu.bc)
   const [de, setDe] = useState(emulator.cpu.de)
