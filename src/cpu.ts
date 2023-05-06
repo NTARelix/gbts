@@ -33,6 +33,10 @@ export class Cpu {
     this.totalCycles = 0
   }
 
+  public getCycles(): number {
+    return this.totalCycles
+  }
+
   public reset(): void {
     this.af = 0x01B0
     this.bc = 0x0013

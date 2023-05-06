@@ -5,6 +5,9 @@ import { Actions } from './actions'
 import { Cpu } from './cpu'
 import { Memory } from './memory'
 import { useBreakpoints } from './use-breakpoints'
+import { tick } from '../tick'
+
+const CYCLES_PER_SECOND = 16384
 
 function calculateMemoryWindow(emulator: Emulator, offset: number, windowSize: number): number[] {
   return new Array(windowSize)
@@ -77,11 +80,18 @@ export const Root: FunctionComponent<RootProps> = ({ emulator }) => {
     setPc(emulator.cpu.pc)
   }
   function resume(): void {
-    emulator.tick()
-    while (!breakpoints.has(emulator.cpu.pc)) {
-      emulator.tick()
-    }
-    updateState()
+    tick((totalTime, deltaTime) => {
+      const initialCycleCount = emulator.cpu.getCycles()
+      const frameEndCycle = initialCycleCount + CYCLES_PER_SECOND / 1000 * deltaTime
+      while (emulator.cpu.getCycles() < frameEndCycle && !breakpoints.has(emulator.cpu.pc)) {
+        emulator.tick()
+      }
+      const stopTicking = breakpoints.has(emulator.cpu.pc)
+      if (stopTicking) {
+        updateState()
+      }
+      return stopTicking
+    })
   }
   function step(): void {
     emulator.tick()
