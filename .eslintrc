@@ -39,6 +39,7 @@
         }
       },
       "rules": {
+        "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
         "@typescript-eslint/member-delimiter-style": [
           "error",
