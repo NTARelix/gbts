@@ -9,8 +9,8 @@
       "es2017",
       "es2018"
     ],
-    "module": "Node16",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noImplicitAny": true,
     "sourceMap": true,
     "strictNullChecks": true,
