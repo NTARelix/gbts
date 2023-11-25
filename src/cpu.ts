@@ -554,7 +554,6 @@ export class Cpu {
       0x03D: { cycles: 4, action: (): void => { this.a = this.dec(this.a) } },
       0x03E: { cycles: 8, action: (): void => { this.a = this.loadImmediateByte() } },
       0x03F: { cycles: 4, action: (): void => { this.ccf() } },
-      // eslint-disable-next-line no-self-assign
       0x040: { cycles: 4, action: (): void => { this.b = this.b } },
       0x041: { cycles: 4, action: (): void => { this.b = this.c } },
       0x042: { cycles: 4, action: (): void => { this.b = this.d } },
@@ -564,7 +563,6 @@ export class Cpu {
       0x046: { cycles: 8, action: (): void => { this.b = this.memoryMap.readByte(this.hl) } },
       0x047: { cycles: 4, action: (): void => { this.b = this.a } },
       0x048: { cycles: 4, action: (): void => { this.c = this.b } },
-      // eslint-disable-next-line no-self-assign
       0x049: { cycles: 4, action: (): void => { this.c = this.c } },
       0x04A: { cycles: 4, action: (): void => { this.c = this.d } },
       0x04B: { cycles: 4, action: (): void => { this.c = this.e } },
@@ -574,7 +572,6 @@ export class Cpu {
       0x04F: { cycles: 4, action: (): void => { this.c = this.a } },
       0x050: { cycles: 4, action: (): void => { this.d = this.b } },
       0x051: { cycles: 4, action: (): void => { this.d = this.c } },
-      // eslint-disable-next-line no-self-assign
       0x052: { cycles: 4, action: (): void => { this.d = this.d } },
       0x053: { cycles: 4, action: (): void => { this.d = this.e } },
       0x054: { cycles: 4, action: (): void => { this.d = this.h } },
@@ -584,7 +581,6 @@ export class Cpu {
       0x058: { cycles: 4, action: (): void => { this.e = this.b } },
       0x059: { cycles: 4, action: (): void => { this.e = this.c } },
       0x05A: { cycles: 4, action: (): void => { this.e = this.d } },
-      // eslint-disable-next-line no-self-assign
       0x05B: { cycles: 4, action: (): void => { this.e = this.e } },
       0x05C: { cycles: 4, action: (): void => { this.e = this.h } },
       0x05D: { cycles: 4, action: (): void => { this.e = this.l } },
@@ -594,7 +590,6 @@ export class Cpu {
       0x061: { cycles: 4, action: (): void => { this.h = this.c } },
       0x062: { cycles: 4, action: (): void => { this.h = this.d } },
       0x063: { cycles: 4, action: (): void => { this.h = this.e } },
-      // eslint-disable-next-line no-self-assign
       0x064: { cycles: 4, action: (): void => { this.h = this.h } },
       0x065: { cycles: 4, action: (): void => { this.h = this.l } },
       0x066: { cycles: 8, action: (): void => { this.h = this.memoryMap.readByte(this.hl) } },
@@ -604,7 +599,6 @@ export class Cpu {
       0x06A: { cycles: 4, action: (): void => { this.l = this.d } },
       0x06B: { cycles: 4, action: (): void => { this.l = this.e } },
       0x06C: { cycles: 4, action: (): void => { this.l = this.h } },
-      // eslint-disable-next-line no-self-assign
       0x06D: { cycles: 4, action: (): void => { this.l = this.l } },
       0x06E: { cycles: 8, action: (): void => { this.l = this.memoryMap.readByte(this.hl) } },
       0x06F: { cycles: 4, action: (): void => { this.l = this.a } },
@@ -623,7 +617,6 @@ export class Cpu {
       0x07C: { cycles: 4, action: (): void => { this.a = this.h } },
       0x07D: { cycles: 4, action: (): void => { this.a = this.l } },
       0x07E: { cycles: 8, action: (): void => { this.a = this.memoryMap.readByte(this.hl) } },
-      // eslint-disable-next-line no-self-assign
       0x07F: { cycles: 4, action: (): void => { this.a = this.a } },
       0x080: { cycles: 4, action: (): void => { this.a = this.addA(this.b) } },
       0x081: { cycles: 4, action: (): void => { this.a = this.addA(this.c) } },

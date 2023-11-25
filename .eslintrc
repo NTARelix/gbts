@@ -15,6 +15,9 @@
   "extends": [
     "eslint:recommended"
   ],
+  "rules": {
+    "no-self-assign": "off"
+  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
@@ -44,6 +47,7 @@
             "singleline": { "delimiter": "comma", "requireLast": false }
           }
         ],
+        "no-self-assign": "off",
         "react/prop-types": "off"
       }
     },
