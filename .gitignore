@@ -1,4 +1,8 @@
-.parcel-cache
+.devenv/
+.devenv.flake.nix
+.direnv
+.pre-commit-config.yaml
 coverage
+devenv.local.nix
 dist
 node_modules
