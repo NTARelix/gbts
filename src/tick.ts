@@ -6,13 +6,13 @@
 type TickerCallback = (totalTime: number, deltaTime: number) => boolean
 
 export function tick(cb: TickerCallback, lastTimestamp: number = Date.now(), startTime: number = Date.now()): void {
-  const currentTimestamp = Date.now()
-  const deltaTime = currentTimestamp - lastTimestamp
-  const totalTime = currentTimestamp - startTime
-  const stop = cb(totalTime, deltaTime)
-  if (!stop) {
-    requestAnimationFrame(() => {
-      tick(cb, currentTimestamp, startTime)
-    })
-  }
+    const currentTimestamp = Date.now()
+    const deltaTime = currentTimestamp - lastTimestamp
+    const totalTime = currentTimestamp - startTime
+    const stop = cb(totalTime, deltaTime)
+    if (!stop) {
+        requestAnimationFrame(() => {
+            tick(cb, currentTimestamp, startTime)
+        })
+    }
 }

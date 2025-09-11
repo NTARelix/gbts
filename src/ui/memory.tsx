@@ -22,61 +22,66 @@ const VirtualAddressRange = styled.div<VirtualAddressRangeProps>`
 `
 
 export interface MemoryProps {
-  breakpoints: ReadonlySet<number>,
-  pc: number,
-  memoryWindow: number[],
-  offset: number,
-  onAddBreakpoint: (breakpoint: number) => void,
-  onDeleteBreakpoint: (breakpoint: number) => void,
-  onRequestNewWindow: (startAddr: number, endAddr: number) => void,
+    breakpoints: ReadonlySet<number>
+    pc: number
+    memoryWindow: number[]
+    offset: number
+    onAddBreakpoint: (breakpoint: number) => void
+    onDeleteBreakpoint: (breakpoint: number) => void
+    onRequestNewWindow: (startAddr: number, endAddr: number) => void
 }
 
 export const Memory: React.FunctionComponent<MemoryProps> = ({ breakpoints, pc, memoryWindow, offset, onAddBreakpoint, onDeleteBreakpoint, onRequestNewWindow }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  function requestNewWindow(): void {
-    if (scrollContainerRef.current) {
-      const topAddr = Math.floor(scrollContainerRef.current.scrollTop / PIXELS_PER_ROW)
-      const bottomAddr = topAddr + Math.ceil(scrollContainerRef.current.clientHeight / PIXELS_PER_ROW)
-      onRequestNewWindow(topAddr, bottomAddr)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    function requestNewWindow(): void {
+        if (scrollContainerRef.current) {
+            const topAddr = Math.floor(scrollContainerRef.current.scrollTop / PIXELS_PER_ROW)
+            const bottomAddr = topAddr + Math.ceil(scrollContainerRef.current.clientHeight / PIXELS_PER_ROW)
+            onRequestNewWindow(topAddr, bottomAddr)
+        }
     }
-  }
-  useEffect(() => {
+    useEffect(() => {
     // Update virtual scrolling window when the client size changes is resized
-    window.addEventListener('resize', requestNewWindow)
-    return () => window.removeEventListener('resize', requestNewWindow)
-  }, [])
-  useEffect(() => {
+        window.addEventListener('resize', requestNewWindow)
+        return () => { window.removeEventListener('resize', requestNewWindow) }
+    }, [])
+    useEffect(() => {
     // Initial scroll to PC
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = offset * PIXELS_PER_ROW
-    }
-  }, [scrollContainerRef.current])
-  useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = offset * PIXELS_PER_ROW
+        }
+    }, [scrollContainerRef.current])
+    useEffect(() => {
     // Focus on PC
-    if (!scrollContainerRef.current) return
-    if (pc < offset + 1) {
-      scrollContainerRef.current.scrollTop = Math.max(0, pc - PC_FOCUS_PADDING) * PIXELS_PER_ROW
-    } else if (pc > offset + memoryWindow.length - 1) {
-      scrollContainerRef.current.scrollTop = Math.min(0xFFFF, pc - memoryWindow.length + PC_FOCUS_PADDING) * PIXELS_PER_ROW
-    }
-  }, [pc])
-  return (
-    <ScrollableContainer ref={scrollContainerRef} onScroll={requestNewWindow}>
-      <AllAddressesFiller>
-        <VirtualAddressRange offset={offset}>
-          {memoryWindow.map((value, index) => (
-            <MemoryRow
-              key={offset + index}
-              addr={offset + index}
-              isActive={pc === offset + index}
-              isBreakpoint={breakpoints.has(offset + index)}
-              onClick={() => breakpoints.has(offset + index) ? onDeleteBreakpoint(offset + index) : onAddBreakpoint(offset + index)}
-            >
-              {value}
-            </MemoryRow>
-          ))}
-        </VirtualAddressRange>
-      </AllAddressesFiller>
-    </ScrollableContainer>
-  )
+        if (!scrollContainerRef.current) return
+        if (pc < offset + 1) {
+            scrollContainerRef.current.scrollTop = Math.max(0, pc - PC_FOCUS_PADDING) * PIXELS_PER_ROW
+        } else if (pc > offset + memoryWindow.length - 1) {
+            scrollContainerRef.current.scrollTop = Math.min(0xFFFF, pc - memoryWindow.length + PC_FOCUS_PADDING) * PIXELS_PER_ROW
+        }
+    }, [pc])
+    return (
+        <ScrollableContainer ref={scrollContainerRef} onScroll={requestNewWindow}>
+            <AllAddressesFiller>
+                <VirtualAddressRange offset={offset}>
+                    {memoryWindow.map((value, index) => (
+                        <MemoryRow
+                            key={offset + index}
+                            addr={offset + index}
+                            isActive={pc === offset + index}
+                            isBreakpoint={breakpoints.has(offset + index)}
+                            onClick={() => {
+                                if (breakpoints.has(offset + index))
+                                    onDeleteBreakpoint(offset + index)
+                                else
+                                    onAddBreakpoint(offset + index)
+                            }}
+                        >
+                            {value}
+                        </MemoryRow>
+                    ))}
+                </VirtualAddressRange>
+            </AllAddressesFiller>
+        </ScrollableContainer>
+    )
 }

@@ -1,5 +1,3 @@
 import { Operation } from './operation'
 
-export interface OperationMap {
-  [name: number]: Operation | null,
-}
+export type OperationMap = Record<number, Operation | null>
