@@ -1,7 +1,7 @@
 on: push
 jobs:
-  build_and_deploy:
-    name: Build and Deploy
+  build:
+    name: Build
     id: build
     runs-on: ubuntu-24.04
     steps:
