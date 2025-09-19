@@ -20,9 +20,21 @@ jobs:
         run: npm run build
       - name: Upload build
         uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/master'
+        id: build
         with:
           path: dist
+  deploy:
+    name: Deploy
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
-        if: github.ref == 'refs/heads/master'
