@@ -19,12 +19,10 @@ jobs:
       - name: Build
         run: npm run build
       - name: Upload build
-        id: deployment
         uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/master'
         with:
           path: dist
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
         if: github.ref == 'refs/heads/master'
