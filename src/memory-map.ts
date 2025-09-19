@@ -1,5 +1,5 @@
-import { Input } from './input'
-import { flagsToNum, toHex } from './math'
+import { Input } from './input.ts'
+import { flagsToNum, toHex } from './math.ts'
 
 /* eslint-disable @stylistic/no-multi-spaces */
 const BIT_DIRECTION_BUTTONS = 0b00100000

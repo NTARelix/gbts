@@ -1,11 +1,11 @@
 import { FunctionComponent, useState } from 'react'
-import styled from 'styled-components'
-import { Emulator } from '../emulator'
-import { Actions } from './actions'
-import { Cpu } from './cpu'
-import { Memory } from './memory'
-import { useBreakpoints } from './use-breakpoints'
-import { tick } from '../tick'
+import { styled } from 'styled-components'
+import { Emulator } from '../emulator.ts'
+import { Actions } from './actions.tsx'
+import { Cpu } from './cpu.tsx'
+import { Memory } from './memory.tsx'
+import { useBreakpoints } from './use-breakpoints.ts'
+import { tick } from '../tick.ts'
 
 const CYCLES_PER_SECOND = 16384
 

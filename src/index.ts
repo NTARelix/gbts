@@ -1,6 +1,6 @@
-import { renderUi } from './ui'
-import { createBinaryFileInput } from './dom'
-import { Emulator } from './emulator'
+import { renderUi } from './ui/index.tsx'
+import { createBinaryFileInput } from './dom.ts'
+import { Emulator } from './emulator.ts'
 
 function main(): void {
     const renderNode = document.createElement('div')

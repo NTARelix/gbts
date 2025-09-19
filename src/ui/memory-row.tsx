@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react'
-import styled from 'styled-components'
-import { toHex } from '../math'
+import { styled } from 'styled-components'
+import { toHex } from '../math.ts'
 
 interface RootProps {
     isActive: boolean
@@ -8,8 +8,8 @@ interface RootProps {
 }
 
 const Root = styled.div<RootProps>`
-  font-family: monospace;
-  background-color: ${({ isActive, isBreakpoint }) =>
+    font-family: monospace;
+    background-color: ${({ isActive, isBreakpoint }) =>
             isActive && isBreakpoint
                 ? '#ff7700'
                 : isActive
@@ -18,13 +18,13 @@ const Root = styled.div<RootProps>`
                         ? '#0077ff'
                         : 'inherit'
     };
-  color: ${({ isActive, isBreakpoint }) =>
+    color: ${({ isActive, isBreakpoint }) =>
             isActive || isBreakpoint
                 ? '#f6f6f6f6'
                 : 'inherit'
     };
-  cursor: pointer;
-  user-select: none;
+    cursor: pointer;
+    user-select: none;
 `
 
 export interface MemoryRowProps {

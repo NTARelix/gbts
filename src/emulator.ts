@@ -1,6 +1,6 @@
-import { Cpu } from './cpu'
-import { Input } from './input'
-import { MemoryMap } from './memory-map'
+import { Cpu } from './cpu.ts'
+import { Input } from './input.ts'
+import { MemoryMap } from './memory-map.ts'
 
 export class Emulator {
     public readonly memoryMap: MemoryMap

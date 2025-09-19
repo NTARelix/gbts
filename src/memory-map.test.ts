@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, test } from '@jest/globals'
-import { Input } from './input'
-import { MemoryMap } from './memory-map'
+import assert from 'node:assert/strict'
+import { beforeEach, describe, test } from 'node:test'
+import { Input } from './input.ts'
+import { MemoryMap } from './memory-map.ts'
 
 const CART_VALUES = 2
 const ADDR_JOY = 0xFF00
@@ -34,91 +35,91 @@ describe('MemoryMap', () => {
         input = new Input()
         mm = new MemoryMap(cart, input)
     })
-    test('Read-only first ROM bank', () => {
+    void test('Read-only first ROM bank', () => {
         mm.writeByte(0x0100, CART_VALUES + 1)
-        expect(mm.readByte(0x0100)).toBe(CART_VALUES)
-        expect(mm.readByte(0x3FFF)).toBe(CART_VALUES)
+        assert.equal(mm.readByte(0x0100), CART_VALUES)
+        assert.equal(mm.readByte(0x3FFF), CART_VALUES)
     })
-    test.skip('Read-only ROM banks', () => {
+    void test('Read-only ROM banks', { skip: true }, () => {
         throw new Error('ROM banks not yet implemented')
     })
-    test('R/W VRAM', () => {
+    void test('R/W VRAM', () => {
         mm.writeByte(0x8000, 0xFF)
         mm.writeByte(0x9FFF, 0xFF)
-        expect(mm.readByte(0x8000)).toBe(0xFF)
-        expect(mm.readByte(0x9FFF)).toBe(0xFF)
+        assert.equal(mm.readByte(0x8000), 0xFF)
+        assert.equal(mm.readByte(0x9FFF), 0xFF)
     })
-    test.skip('R/W external RAM', () => {
+    void test('R/W external RAM', { skip: true }, () => {
         throw new Error('External RAM not yet implemented')
     })
-    test('R/W Working RAM', () => {
+    void test('R/W Working RAM', () => {
         mm.writeByte(0xC000, 0xFF)
         mm.writeByte(0xDFFF, 0xFF)
-        expect(mm.readByte(0xC000)).toBe(0xFF)
-        expect(mm.readByte(0xDFFF)).toBe(0xFF)
+        assert.equal(mm.readByte(0xC000), 0xFF)
+        assert.equal(mm.readByte(0xDFFF), 0xFF)
     })
-    test('R/W Working RAM Mirror', () => {
+    void test('R/W Working RAM Mirror', () => {
         mm.writeByte(0xC000, 0xFF)
         mm.writeByte(0xDDFF, 0xFF)
-        expect(mm.readByte(0xE000)).toBe(0xFF)
-        expect(mm.readByte(0xFDFF)).toBe(0xFF)
+        assert.equal(mm.readByte(0xE000), 0xFF)
+        assert.equal(mm.readByte(0xFDFF), 0xFF)
     })
-    test.skip('R/W OAM', () => {
+    void test('R/W OAM', { skip: true }, () => {
         throw new Error('OAM not yet implemented')
     })
     describe('R/W Joypad', () => {
-        test('Defaults to no buttons pressed and no checking', () => {
-            expect(mm.readByte(ADDR_JOY)).toBe(JOY_BASE)
+        void test('Defaults to no buttons pressed and no checking', () => {
+            assert.equal(mm.readByte(ADDR_JOY), JOY_BASE)
         })
-        test('Standard buttons not detected when checking for directional buttons', () => {
+        void test('Standard buttons not detected when checking for directional buttons', () => {
             input.a = true
             input.b = true
             input.start = true
             input.select = true
             mm.writeByte(ADDR_JOY, JOY_TEST_DIR)
-            expect(mm.readByte(ADDR_JOY)).toBe(JOY_BASE | JOY_TEST_DIR)
+            assert.equal(mm.readByte(ADDR_JOY), JOY_BASE | JOY_TEST_DIR)
         })
-        test('Directional buttons not detected when checking for standard buttons', () => {
+        void test('Directional buttons not detected when checking for standard buttons', () => {
             input.up = true
             input.down = true
             input.left = true
             input.right = true
             mm.writeByte(ADDR_JOY, JOY_TEST_STD)
-            expect(mm.readByte(ADDR_JOY)).toBe(JOY_BASE | JOY_TEST_STD)
+            assert.equal(mm.readByte(ADDR_JOY), JOY_BASE | JOY_TEST_STD)
         })
-        test('Directional buttons detected', () => {
+        void test('Directional buttons detected', () => {
             input.up = true
             input.down = true
             input.left = true
             input.right = true
             mm.writeByte(ADDR_JOY, JOY_TEST_DIR)
-            expect(mm.readByte(ADDR_JOY)).toBe(JOY_BASE | JOY_TEST_DIR | JOY_UP_SELECT | JOY_DOWN_START | JOY_LEFT_B | JOY_RIGHT_A)
+            assert.equal(mm.readByte(ADDR_JOY), JOY_BASE | JOY_TEST_DIR | JOY_UP_SELECT | JOY_DOWN_START | JOY_LEFT_B | JOY_RIGHT_A)
         })
-        test('Standard buttons detected', () => {
+        void test('Standard buttons detected', () => {
             input.a = true
             input.b = true
             input.start = true
             input.select = true
             mm.writeByte(ADDR_JOY, JOY_TEST_STD)
-            expect(mm.readByte(ADDR_JOY)).toBe(JOY_BASE | JOY_TEST_STD | JOY_UP_SELECT | JOY_DOWN_START | JOY_LEFT_B | JOY_RIGHT_A)
+            assert.equal(mm.readByte(ADDR_JOY), JOY_BASE | JOY_TEST_STD | JOY_UP_SELECT | JOY_DOWN_START | JOY_LEFT_B | JOY_RIGHT_A)
         })
     })
-    test('R/W I/O', () => {
+    void test('R/W I/O', () => {
         mm.writeByte(0xFF01, 0xFF)
         mm.writeByte(0xFF7F, 0xFF)
-        expect(mm.readByte(0xFF01)).toBe(0xFF)
-        expect(mm.readByte(0xFF7F)).toBe(0xFF)
+        assert.equal(mm.readByte(0xFF01), 0xFF)
+        assert.equal(mm.readByte(0xFF7F), 0xFF)
     })
-    test('R/W Zero page', () => {
+    void test('R/W Zero page', () => {
         mm.writeByte(0xFF80, 0xFF)
         mm.writeByte(0xFFFF, 0xFF)
-        expect(mm.readByte(0xFF80)).toBe(0xFF)
-        expect(mm.readByte(0xFFFF)).toBe(0xFF)
+        assert.equal(mm.readByte(0xFF80), 0xFF)
+        assert.equal(mm.readByte(0xFFFF), 0xFF)
     })
-    test('Outside bounds throws error', () => {
-        expect(() => mm.readByte(-1)).toThrow()
-        expect(() => { mm.writeByte(-1, 0xFF) }).toThrow()
-        expect(() => mm.readByte(0x10000)).toThrow()
-        expect(() => { mm.writeByte(0x10000, 0xFF) }).toThrow()
+    void test('Outside bounds throws error', () => {
+        assert.throws(() => mm.readByte(-1))
+        assert.throws(() => { mm.writeByte(-1, 0xFF) })
+        assert.throws(() => mm.readByte(0x10000))
+        assert.throws(() => { mm.writeByte(0x10000, 0xFF) })
     })
 })

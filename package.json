@@ -2,28 +2,26 @@
     "name": "gbjs",
     "version": "1.0.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "build": "vite build --base ./",
         "preview": "vite preview",
         "deploy": "gh-pages -d dist",
         "lint": "eslint .",
         "start": "vite",
-        "test": "jest --watch"
+        "test": "node --test --watch",
+        "test:ci": "node --test"
     },
     "license": "ISC",
     "devDependencies": {
         "@eslint/js": "^9.34.0",
-        "@jest/globals": "^29.5.0",
         "@stylistic/eslint-plugin": "^5.3.1",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.11",
-        "@types/styled-components": "^5.1.26",
         "eslint": "^9.34.0",
         "gh-pages": "^2.2.0",
         "globals": "^16.3.0",
-        "jest": "^29.5.0",
         "jiti": "^2.5.1",
-        "ts-jest": "^29.0.5",
         "ts-node": "^10.9.1",
         "typescript": "^5.9.2",
         "typescript-eslint": "^8.41.0"
@@ -31,7 +29,7 @@
     "dependencies": {
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "styled-components": "^5.3.9",
+        "styled-components": "^6.1.19",
         "vite": "^5.0.2"
     }
 }

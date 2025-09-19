@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, test } from '@jest/globals'
-import { Cpu } from './cpu'
-import { Input } from './input'
-import { toHex } from './math'
-import { MemoryMap } from './memory-map'
+import assert from 'node:assert/strict'
+import { beforeEach, describe, test } from 'node:test'
+import { Cpu } from './cpu.ts'
+import { Input } from './input.ts'
+import { toHex } from './math.ts'
+import { MemoryMap } from './memory-map.ts'
 
 const dynamicRegisterAccessor = (cpu: Cpu, registerName: string): number => {
     switch (registerName) {
@@ -58,63 +59,63 @@ describe('CPU', () => {
         const WORD = 0b1111000000001111
         const UPPER = 0b11110000
         const LOWER = 0b00001111
-        test('All default to 0', () => {
-            expect(cpu.af).toBe(0)
-            expect(cpu.bc).toBe(0)
-            expect(cpu.de).toBe(0)
-            expect(cpu.hl).toBe(0)
-            expect(cpu.pc).toBe(0)
-            expect(cpu.sp).toBe(0)
+        void test('All default to 0', () => {
+            assert.equal(cpu.af, 0)
+            assert.equal(cpu.bc, 0)
+            assert.equal(cpu.de, 0)
+            assert.equal(cpu.hl, 0)
+            assert.equal(cpu.pc, 0)
+            assert.equal(cpu.sp, 0)
         })
-        test('AF is composed of A & F', () => {
+        void test('AF is composed of A & F', () => {
             cpu.af = WORD
-            expect(cpu.a).toBe(UPPER)
-            expect(cpu.f).toBe(LOWER)
+            assert.equal(cpu.a, UPPER)
+            assert.equal(cpu.f, LOWER)
             cpu.af = 0
-            expect(cpu.a).toBe(0)
-            expect(cpu.f).toBe(0)
+            assert.equal(cpu.a, 0)
+            assert.equal(cpu.f, 0)
             cpu.a = UPPER
             cpu.f = LOWER
-            expect(cpu.af).toBe(WORD)
+            assert.equal(cpu.af, WORD)
         })
-        test('BC is composed of B & C', () => {
+        void test('BC is composed of B & C', () => {
             cpu.bc = WORD
-            expect(cpu.b).toBe(UPPER)
-            expect(cpu.c).toBe(LOWER)
+            assert.equal(cpu.b, UPPER)
+            assert.equal(cpu.c, LOWER)
             cpu.bc = 0
-            expect(cpu.b).toBe(0)
-            expect(cpu.c).toBe(0)
+            assert.equal(cpu.b, 0)
+            assert.equal(cpu.c, 0)
             cpu.b = UPPER
             cpu.c = LOWER
-            expect(cpu.bc).toBe(WORD)
+            assert.equal(cpu.bc, WORD)
         })
-        test('DE is composed of D & E', () => {
+        void test('DE is composed of D & E', () => {
             cpu.de = WORD
-            expect(cpu.d).toBe(UPPER)
-            expect(cpu.e).toBe(LOWER)
+            assert.equal(cpu.d, UPPER)
+            assert.equal(cpu.e, LOWER)
             cpu.de = 0
-            expect(cpu.d).toBe(0)
-            expect(cpu.e).toBe(0)
+            assert.equal(cpu.d, 0)
+            assert.equal(cpu.e, 0)
             cpu.d = UPPER
             cpu.e = LOWER
-            expect(cpu.de).toBe(WORD)
+            assert.equal(cpu.de, WORD)
         })
-        test('HL is composed of H & L', () => {
+        void test('HL is composed of H & L', () => {
             cpu.hl = WORD
-            expect(cpu.h).toBe(UPPER)
-            expect(cpu.l).toBe(LOWER)
+            assert.equal(cpu.h, UPPER)
+            assert.equal(cpu.l, LOWER)
             cpu.hl = 0
-            expect(cpu.h).toBe(0)
-            expect(cpu.l).toBe(0)
+            assert.equal(cpu.h, 0)
+            assert.equal(cpu.l, 0)
             cpu.h = UPPER
             cpu.l = LOWER
-            expect(cpu.hl).toBe(WORD)
+            assert.equal(cpu.hl, WORD)
         })
     })
     describe('Operations', () => {
-        test('0x00 - NOP', () => {
+        void test('0x00 - NOP', () => {
             cpu.tick()
-            expect(cpu.pc).toBe(1)
+            assert.equal(cpu.pc, 1)
         })
         describe('LD nn,d16', () => {
             const ops = [
@@ -124,13 +125,13 @@ describe('CPU', () => {
                 { opcode: 0x31, register: 'sp' },
             ]
             ops.forEach(({ opcode, register }) => {
-                test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d16`, () => {
+                void test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d16`, () => {
                     cartByteView[0] = opcode
                     cartByteView[1] = 0xEF
                     cartByteView[2] = 0xCD
                     cpu.tick()
-                    expect(cpu.pc).toBe(3)
-                    expect(dynamicRegisterAccessor(cpu, register)).toBe(0xCDEF)
+                    assert.equal(cpu.pc, 3)
+                    assert.equal(dynamicRegisterAccessor(cpu, register), 0xCDEF)
                 })
             })
         })
@@ -145,12 +146,12 @@ describe('CPU', () => {
                 { opcode: 0x3E, register: 'a' },
             ]
             ops.forEach(({ opcode, register }) => {
-                test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d8`, () => {
+                void test(`${toHex(opcode, 2, true)} - LD ${register.toUpperCase()},d8`, () => {
                     cartByteView[0] = opcode
                     cartByteView[1] = 0xEF
                     cpu.tick()
-                    expect(cpu.pc).toBe(2)
-                    expect(dynamicRegisterAccessor(cpu, register)).toBe(0xEF)
+                    assert.equal(cpu.pc, 2)
+                    assert.equal(dynamicRegisterAccessor(cpu, register), 0xEF)
                 })
             })
         })
@@ -167,39 +168,39 @@ describe('CPU', () => {
                 { opcode: 0x77, target: 'hl', source: 'a' },
             ]
             ops.forEach(({ opcode, target, source }) => {
-                test(`${toHex(opcode, 2, true)} - LD (${target.toUpperCase()}${opcode === 0x22 ? '+' : opcode === 0x32 ? '-' : ''}),${source.toUpperCase()}`, () => {
+                void test(`${toHex(opcode, 2, true)} - LD (${target.toUpperCase()}${opcode === 0x22 ? '+' : opcode === 0x32 ? '-' : ''}),${source.toUpperCase()}`, () => {
                     cartByteView[0] = opcode
                     dynamicRegisterMutator(cpu, target, 0xC000)
                     dynamicRegisterMutator(cpu, source, 0xEF)
                     cpu.tick()
-                    expect(cpu.pc).toEqual(1)
-                    expect(mm.readByte(0xC000)).toBe(0xEF)
-                    if (opcode === 0x22) { expect(cpu.hl).toBe(0xC000 + 1) }
-                    if (opcode === 0x32) { expect(cpu.hl).toBe(0xC000 - 1) }
+                    assert.equal(cpu.pc, 1)
+                    assert.equal(mm.readByte(0xC000), 0xEF)
+                    if (opcode === 0x22) { assert.equal(cpu.hl, 0xC000 + 1) }
+                    if (opcode === 0x32) { assert.equal(cpu.hl, 0xC000 - 1) }
                 })
             })
-            test('0x08 - LD (a16),SP', () => {
+            void test('0x08 - LD (a16),SP', () => {
                 cartByteView[0] = 0x08
                 cartByteView[1] = 0x00
                 cartByteView[2] = 0xC0
                 cpu.sp = 0xCDEF
                 cpu.tick()
-                expect(cpu.pc).toBe(3)
-                expect(mm.readWord(0xC000)).toBe(0xCDEF)
+                assert.equal(cpu.pc, 3)
+                assert.equal(mm.readWord(0xC000), 0xCDEF)
             })
-            test('0x74 - LD (HL),H', () => {
+            void test('0x74 - LD (HL),H', () => {
                 cartByteView[0] = 0x74
                 cpu.hl = 0xC002
                 cpu.tick()
-                expect(cpu.pc).toBe(1)
-                expect(mm.readByte(0xC002)).toBe(0xC0)
+                assert.equal(cpu.pc, 1)
+                assert.equal(mm.readByte(0xC002), 0xC0)
             })
-            test('0x75 - LD (HL),L', () => {
+            void test('0x75 - LD (HL),L', () => {
                 cartByteView[0] = 0x75
                 cpu.hl = 0xC002
                 cpu.tick()
-                expect(cpu.pc).toBe(1)
-                expect(mm.readByte(0xC002)).toBe(0x02)
+                assert.equal(cpu.pc, 1)
+                assert.equal(mm.readByte(0xC002), 0x02)
             })
         })
         describe('INC nn', () => {
@@ -210,11 +211,11 @@ describe('CPU', () => {
                 { opcode: 0x33, register: 'sp' },
             ]
             ops.forEach(({ opcode, register }) => {
-                test(`${toHex(opcode, 2, true)} - INC ${register.toUpperCase()}`, () => {
+                void test(`${toHex(opcode, 2, true)} - INC ${register.toUpperCase()}`, () => {
                     cartByteView[0] = opcode
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
-                    expect(dynamicRegisterAccessor(cpu, register)).toBe(1)
+                    assert.equal(cpu.pc, 1)
+                    assert.equal(dynamicRegisterAccessor(cpu, register), 1)
                 })
             })
         })
@@ -233,28 +234,28 @@ describe('CPU', () => {
                     beforeEach(() => {
                         cartByteView[0] = opcode
                     })
-                    test('PC += 1', () => {
+                    void test('PC += 1', () => {
                         cpu.tick()
-                        expect(cpu.pc).toBe(1)
+                        assert.equal(cpu.pc, 1)
                     })
-                    test(`${register.toUpperCase()} += 1`, () => {
+                    void test(`${register.toUpperCase()} += 1`, () => {
                         cpu.tick()
-                        expect(dynamicRegisterAccessor(cpu, register)).toBe(1)
+                        assert.equal(dynamicRegisterAccessor(cpu, register), 1)
                     })
-                    test('Has no default flags', () => {
+                    void test('Has no default flags', () => {
                         cpu.tick()
-                        expect(cpu.f).toBe(0)
+                        assert.equal(cpu.f, 0)
                     })
-                    test('Has no effect on carry flag', () => {
+                    void test('Has no effect on carry flag', () => {
                         cpu.fc = true
                         cpu.tick()
-                        expect(cpu.fc).toBe(true)
+                        assert.equal(cpu.fc, true)
                     })
-                    test('Overflows to 0 and sets zero flag when 0xFF', () => {
+                    void test('Overflows to 0 and sets zero flag when 0xFF', () => {
                         dynamicRegisterMutator(cpu, register, 0xFF)
                         cpu.tick()
-                        expect(dynamicRegisterAccessor(cpu, register)).toBe(0)
-                        expect(cpu.fz).toBe(true)
+                        assert.equal(dynamicRegisterAccessor(cpu, register), 0)
+                        assert.equal(cpu.fz, true)
                     })
                     describe('Sets half-carry flag', () => {
                         const halfCarries = new Array(15)
@@ -262,10 +263,10 @@ describe('CPU', () => {
                             .map((_, index) => index + 1)
                             .map(index => index * 0x10 - 1)
                         halfCarries.forEach((value) => {
-                            test(`${toHex(value, 2, true)} => ${toHex((value + 1) & 0xFF, 2, true)}`, () => {
+                            void test(`${toHex(value, 2, true)} => ${toHex((value + 1) & 0xFF, 2, true)}`, () => {
                                 dynamicRegisterMutator(cpu, register, value)
                                 cpu.tick()
-                                expect(cpu.fh).toBe(true)
+                                assert.equal(cpu.fh, true)
                             })
                         })
                     })
@@ -287,42 +288,42 @@ describe('CPU', () => {
                     beforeEach(() => {
                         cartByteView[0] = opcode
                     })
-                    test('PC += 1', () => {
+                    void test('PC += 1', () => {
                         cpu.tick()
-                        expect(cpu.pc).toBe(1)
+                        assert.equal(cpu.pc, 1)
                     })
-                    test(`${register.toUpperCase()} -= 1`, () => {
+                    void test(`${register.toUpperCase()} -= 1`, () => {
                         dynamicRegisterMutator(cpu, register, 2)
                         cpu.tick()
-                        expect(dynamicRegisterAccessor(cpu, register)).toBe(1)
+                        assert.equal(dynamicRegisterAccessor(cpu, register), 1)
                     })
-                    test('Has subtraction flag by default', () => {
+                    void test('Has subtraction flag by default', () => {
                         cpu.tick()
-                        expect(cpu.fn).toBe(true)
+                        assert.equal(cpu.fn, true)
                     })
-                    test('Has no effect on carry flag', () => {
+                    void test('Has no effect on carry flag', () => {
                         cpu.fc = true
                         cpu.tick()
-                        expect(cpu.fc).toBe(true)
+                        assert.equal(cpu.fc, true)
                     })
-                    test('Overflows to 0xFF when 0', () => {
+                    void test('Overflows to 0xFF when 0', () => {
                         cpu.tick()
-                        expect(dynamicRegisterAccessor(cpu, register)).toBe(0xFF)
+                        assert.equal(dynamicRegisterAccessor(cpu, register), 0xFF)
                     })
-                    test('Sets zero flag when decrementing from 1 to 0', () => {
+                    void test('Sets zero flag when decrementing from 1 to 0', () => {
                         dynamicRegisterMutator(cpu, register, 1)
                         cpu.tick()
-                        expect(cpu.fz).toBe(true)
+                        assert.equal(cpu.fz, true)
                     })
                     describe('Sets half-carry flag', () => {
                         const halfCarries = new Array(15)
                             .fill(0)
                             .map((_, index) => index * 0x10)
                         halfCarries.forEach((value) => {
-                            test(`${toHex(value, 2, true)} => ${toHex((value - 1) & 0xFF, 2, true)}`, () => {
+                            void test(`${toHex(value, 2, true)} => ${toHex((value - 1) & 0xFF, 2, true)}`, () => {
                                 dynamicRegisterMutator(cpu, register, value)
                                 cpu.tick()
-                                expect(cpu.fh).toBe(true)
+                                assert.equal(cpu.fh, true)
                             })
                         })
                     })
@@ -334,104 +335,104 @@ describe('CPU', () => {
                 beforeEach(() => {
                     cartByteView[0] = 0x07
                 })
-                test('PC += 1', () => {
+                void test('PC += 1', () => {
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
+                    assert.equal(cpu.pc, 1)
                 })
-                test('Performs left rotation on register A', () => {
+                void test('Performs left rotation on register A', () => {
                     cpu.a = 0b01000101
                     cpu.tick()
-                    expect(cpu.a).toBe(0b10001010)
+                    assert.equal(cpu.a, 0b10001010)
                 })
-                test('Has no default flags', () => {
+                void test('Has no default flags', () => {
                     cpu.tick()
-                    expect(cpu.f).toBe(0)
+                    assert.equal(cpu.f, 0)
                 })
-                test('Sets carry flag', () => {
+                void test('Sets carry flag', () => {
                     cpu.a = 0b10000000
                     cpu.tick()
-                    expect(cpu.fc).toBe(true)
+                    assert.equal(cpu.fc, true)
                 })
             })
             describe('0x0F - RRCA', () => {
                 beforeEach(() => {
                     cartByteView[0] = 0x0F
                 })
-                test('PC += 1', () => {
+                void test('PC += 1', () => {
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
+                    assert.equal(cpu.pc, 1)
                 })
-                test('Performs right rotation on register A', () => {
+                void test('Performs right rotation on register A', () => {
                     cpu.a = 0b01000101
                     cpu.tick()
-                    expect(cpu.a).toBe(0b10100010)
+                    assert.equal(cpu.a, 0b10100010)
                 })
-                test('Has no default flags', () => {
+                void test('Has no default flags', () => {
                     cpu.tick()
-                    expect(cpu.f).toBe(0)
+                    assert.equal(cpu.f, 0)
                 })
-                test('Sets carry flag', () => {
+                void test('Sets carry flag', () => {
                     cpu.a = 0b00000001
                     cpu.tick()
-                    expect(cpu.fc).toBe(true)
+                    assert.equal(cpu.fc, true)
                 })
             })
             describe('0x17 - RLA', () => {
                 beforeEach(() => {
                     cartByteView[0] = 0x17
                 })
-                test('PC += 1', () => {
+                void test('PC += 1', () => {
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
+                    assert.equal(cpu.pc, 1)
                 })
-                test('Performs left rotation on register WITHOUT carry flag', () => {
+                void test('Performs left rotation on register WITHOUT carry flag', () => {
                     cpu.a = 0b01000101
                     cpu.tick()
-                    expect(cpu.a).toBe(0b10001010)
+                    assert.equal(cpu.a, 0b10001010)
                 })
-                test('Performs left rotation on register WITH carry flag', () => {
+                void test('Performs left rotation on register WITH carry flag', () => {
                     cpu.a = 0b01000101
                     cpu.fc = true
                     cpu.tick()
-                    expect(cpu.a).toBe(0b10001011)
+                    assert.equal(cpu.a, 0b10001011)
                 })
-                test('Has no default flags', () => {
+                void test('Has no default flags', () => {
                     cpu.tick()
-                    expect(cpu.f).toBe(0)
+                    assert.equal(cpu.f, 0)
                 })
-                test('Sets carry flag', () => {
+                void test('Sets carry flag', () => {
                     cpu.a = 0b10000000
                     cpu.tick()
-                    expect(cpu.fc).toBe(true)
+                    assert.equal(cpu.fc, true)
                 })
             })
             describe('0x1F - RRA', () => {
                 beforeEach(() => {
                     cartByteView[0] = 0x1F
                 })
-                test('PC += 1', () => {
+                void test('PC += 1', () => {
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
+                    assert.equal(cpu.pc, 1)
                 })
-                test('Performs right rotation on register WITHOUT carry flag', () => {
+                void test('Performs right rotation on register WITHOUT carry flag', () => {
                     cpu.a = 0b10001010
                     cpu.tick()
-                    expect(cpu.a).toBe(0b01000101)
+                    assert.equal(cpu.a, 0b01000101)
                 })
-                test('Performs right rotation on register WITH carry flag', () => {
+                void test('Performs right rotation on register WITH carry flag', () => {
                     cpu.a = 0b10001010
                     cpu.fc = true
                     cpu.tick()
-                    expect(cpu.a).toBe(0b11000101)
+                    assert.equal(cpu.a, 0b11000101)
                 })
-                test('Has no default flags', () => {
+                void test('Has no default flags', () => {
                     cpu.tick()
-                    expect(cpu.f).toBe(0)
+                    assert.equal(cpu.f, 0)
                 })
-                test('Sets carry flag', () => {
+                void test('Sets carry flag', () => {
                     cpu.a = 0b00000001
                     cpu.tick()
-                    expect(cpu.fc).toBe(true)
+                    assert.equal(cpu.fc, true)
                 })
             })
         })
@@ -447,26 +448,26 @@ describe('CPU', () => {
                     beforeEach(() => {
                         cartByteView[0] = opcode
                     })
-                    test('PC += 1', () => {
+                    void test('PC += 1', () => {
                         cpu.tick()
-                        expect(cpu.pc).toBe(1)
+                        assert.equal(cpu.pc, 1)
                     })
-                    test(`HL += ${register.toUpperCase()}`, () => {
+                    void test(`HL += ${register.toUpperCase()}`, () => {
                         cpu.hl = 2
                         if (register !== 'hl') {
                             dynamicRegisterMutator(cpu, register, 3)
                         }
                         cpu.tick()
-                        expect(cpu.hl).toBe(register !== 'hl' ? 5 : 4)
+                        assert.equal(cpu.hl, register !== 'hl' ? 5 : 4)
                     })
-                    test('Has no flags by default', () => {
+                    void test('Has no flags by default', () => {
                         cpu.tick()
-                        expect(cpu.f).toBe(0)
+                        assert.equal(cpu.f, 0)
                     })
-                    test('Has no effect on zero flag', () => {
+                    void test('Has no effect on zero flag', () => {
                         cpu.fz = true
                         cpu.tick()
-                        expect(cpu.fz).toBe(true)
+                        assert.equal(cpu.fz, true)
                     })
                     describe('Sets half-carry flag', () => {
                         if (register === 'hl') {
@@ -477,11 +478,11 @@ describe('CPU', () => {
                             .fill(0)
                             .map((_, index) => (index + 1) * 0x1000 - 1)
                         halfCarries.forEach((value) => {
-                            test(`${toHex(value, 4, true)} => ${toHex((value + 1) & 0xFFFF, 4, true)}`, () => {
+                            void test(`${toHex(value, 4, true)} => ${toHex((value + 1) & 0xFFFF, 4, true)}`, () => {
                                 cpu.hl = value
                                 dynamicRegisterMutator(cpu, register, 1)
                                 cpu.tick()
-                                expect(cpu.fh).toBe(true)
+                                assert.equal(cpu.fh, true)
                             })
                         })
                     })
@@ -501,13 +502,13 @@ describe('CPU', () => {
                 { opcode: 0x7E, target: 'a', source: 'hl' },
             ]
             ops.forEach(({ opcode, target, source }) => {
-                test(`${toHex(opcode, 2, true)} - LD ${target.toUpperCase()},(${source.toUpperCase()})`, () => {
+                void test(`${toHex(opcode, 2, true)} - LD ${target.toUpperCase()},(${source.toUpperCase()})`, () => {
                     cartByteView[0] = opcode
                     dynamicRegisterMutator(cpu, source, 0xC000)
                     mm.writeByte(dynamicRegisterAccessor(cpu, source), 0xEF)
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
-                    expect(dynamicRegisterAccessor(cpu, target)).toBe(0xEF)
+                    assert.equal(cpu.pc, 1)
+                    assert.equal(dynamicRegisterAccessor(cpu, target), 0xEF)
                 })
             })
         })
@@ -519,21 +520,21 @@ describe('CPU', () => {
                 { opcode: 0x3B, register: 'sp' },
             ]
             ops.forEach(({ opcode, register }) => {
-                test(`${toHex(opcode, 2, true)} - DEC ${register.toUpperCase()}`, () => {
+                void test(`${toHex(opcode, 2, true)} - DEC ${register.toUpperCase()}`, () => {
                     cartByteView[0] = opcode
                     dynamicRegisterMutator(cpu, register, 2)
                     cpu.tick()
-                    expect(cpu.pc).toBe(1)
-                    expect(dynamicRegisterAccessor(cpu, register)).toBe(1)
+                    assert.equal(cpu.pc, 1)
+                    assert.equal(dynamicRegisterAccessor(cpu, register), 1)
                 })
             })
         })
-        test('0x10 - STOP', () => {
+        void test('0x10 - STOP', () => {
             cartByteView[0] = 0x10
             cpu.tick()
-            expect(cpu.pc).toBe(2)
+            assert.equal(cpu.pc, 2)
             cpu.tick()
-            expect(cpu.pc).toBe(2)
+            assert.equal(cpu.pc, 2)
         })
     })
 })

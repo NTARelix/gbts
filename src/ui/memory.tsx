@@ -1,24 +1,24 @@
 import { useEffect, useRef } from 'react'
-import styled from 'styled-components'
-import { MemoryRow } from './memory-row'
+import { styled } from 'styled-components'
+import { MemoryRow } from './memory-row.tsx'
 
 const ADDRESS_ROW_COUNT = 0xFFFF
 const PIXELS_PER_ROW = 15
 const PC_FOCUS_PADDING = 8
 
 const ScrollableContainer = styled.div`
-  overflow-y: scroll;
-  height: 100%;
+    overflow-y: scroll;
+    height: 100%;
 `
 
 const AllAddressesFiller = styled.div`
-  height: ${ADDRESS_ROW_COUNT * PIXELS_PER_ROW}px;
+    height: ${ADDRESS_ROW_COUNT * PIXELS_PER_ROW}px;
 `
 
 interface VirtualAddressRangeProps { offset: number }
 const VirtualAddressRange = styled.div<VirtualAddressRangeProps>`
-  position: relative;
-  top: ${props => props.offset * PIXELS_PER_ROW}px
+    position: relative;
+    top: ${props => props.offset * PIXELS_PER_ROW}px
 `
 
 export interface MemoryProps {

@@ -1,6 +1,6 @@
-import { OperationMap } from './operation-map'
-import { flagsToNum, toHex, toSigned } from './math'
-import { MemoryMap } from './memory-map'
+import type { OperationMap } from './operation-map.ts'
+import { flagsToNum, toHex, toSigned } from './math.ts'
+import { MemoryMap } from './memory-map.ts'
 
 /* eslint-disable @stylistic/no-multi-spaces */
 const FLAG_ZERO =         0b10000000

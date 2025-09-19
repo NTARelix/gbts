@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react'
-import { toHex } from '../math'
+import { toHex } from '../math.ts'
 
 export interface CpuProps {
     af: number
