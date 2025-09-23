@@ -15,10 +15,9 @@ const AllAddressesFiller = styled.div`
     height: ${ADDRESS_ROW_COUNT * PIXELS_PER_ROW}px;
 `
 
-interface VirtualAddressRangeProps { offset: number }
-const VirtualAddressRange = styled.div<VirtualAddressRangeProps>`
+const VirtualAddressRange = styled.div<{ $offset: number }>`
     position: relative;
-    top: ${props => props.offset * PIXELS_PER_ROW}px
+    top: ${props => props.$offset * PIXELS_PER_ROW}px
 `
 
 export interface MemoryProps {
@@ -63,7 +62,7 @@ export const Memory: React.FunctionComponent<MemoryProps> = ({ breakpoints, pc, 
     return (
         <ScrollableContainer ref={scrollContainerRef} onScroll={requestNewWindow}>
             <AllAddressesFiller>
-                <VirtualAddressRange offset={offset}>
+                <VirtualAddressRange $offset={offset}>
                     {memoryWindow.map((value, index) => (
                         <MemoryRow
                             key={offset + index}

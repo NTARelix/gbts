@@ -2,24 +2,19 @@ import { FunctionComponent } from 'react'
 import { styled } from 'styled-components'
 import { toHex } from '../math.ts'
 
-interface RootProps {
-    isActive: boolean
-    isBreakpoint: boolean
-}
-
-const Root = styled.div<RootProps>`
+const Root = styled.div<{ $isActive: boolean, $isBreakpoint: boolean }>`
     font-family: monospace;
-    background-color: ${({ isActive, isBreakpoint }) =>
-            isActive && isBreakpoint
+    background-color: ${props =>
+            props.$isActive && props.$isBreakpoint
                 ? '#ff7700'
-                : isActive
+                : props.$isActive
                     ? '#378b2e'
-                    : isBreakpoint
+                    : props.$isBreakpoint
                         ? '#0077ff'
                         : 'inherit'
     };
-    color: ${({ isActive, isBreakpoint }) =>
-            isActive || isBreakpoint
+    color: ${props =>
+            props.$isActive || props.$isBreakpoint
                 ? '#f6f6f6f6'
                 : 'inherit'
     };
@@ -36,7 +31,7 @@ export interface MemoryRowProps {
 }
 
 export const MemoryRow: FunctionComponent<MemoryRowProps> = ({ children, addr, isActive = false, isBreakpoint, onClick }) => (
-    <Root isActive={isActive} isBreakpoint={isBreakpoint} onClick={onClick}>
+    <Root $isActive={isActive} $isBreakpoint={isBreakpoint} onClick={onClick}>
         {toHex(addr, 4)}
         {' '}
         {toHex(children, 4)}
